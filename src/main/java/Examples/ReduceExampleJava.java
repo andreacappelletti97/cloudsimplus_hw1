@@ -61,7 +61,7 @@ import java.util.List;
  * @since CloudSim Plus 1.0
  * @see BasicFirstExample
  */
-public class ReduceExample {
+public class ReduceExampleJava {
 
     public static void start() {
 
