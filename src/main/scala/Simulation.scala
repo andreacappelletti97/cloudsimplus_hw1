@@ -12,8 +12,8 @@ object Simulation:
     //logger.info("Constructing a cloud model...")
     //BasicCloudSimPlusExample.Start()
     //MyFirstExample.Start()
-    //BasicFirstExample.start();
-    ReduceExample.Start()
+    BasicFirstExample.start();
+    //ReduceExample.Start()
     //logger.info("Finished cloud simulation...")
     //ReduceExample.start()
 
