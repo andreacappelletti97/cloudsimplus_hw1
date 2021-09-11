@@ -11,8 +11,8 @@ object Simulation:
   @main def runSimulation =
     //logger.info("Constructing a cloud model...")
     //BasicCloudSimPlusExample.Start()
-    //MyFirstExample.Start()
-    BasicFirstExample.start();
+    MyFirstExample.Start()
+    //BasicFirstExample.start();
     //ReduceExample.Start()
     //logger.info("Finished cloud simulation...")
     //ReduceExample.start()
