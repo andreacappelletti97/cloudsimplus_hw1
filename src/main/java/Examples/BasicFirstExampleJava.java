@@ -52,7 +52,7 @@ import java.util.List;
  * @author Manoel Campos da Silva Filho
  * @since CloudSim Plus 1.0
  */
-public class BasicFirstExample {
+public class BasicFirstExampleJava {
     private static final int  HOSTS = 1;
     private static final int  HOST_PES = 8;
     private static final int  HOST_MIPS = 1000;
@@ -70,9 +70,9 @@ public class BasicFirstExample {
     private List<Cloudlet> cloudletList;
     private Datacenter datacenter0;
     public static void start() {
-        new BasicFirstExample();
+        new BasicFirstExampleJava();
     }
-    private BasicFirstExample() {
+    private BasicFirstExampleJava() {
 /*Enables just some level of log messages.
           Make sure to import org.cloudsimplus.util.Log;*/
 //Log.setLevel(ch.qos.logback.classic.Level.WARN);

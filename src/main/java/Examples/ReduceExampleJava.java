@@ -55,11 +55,11 @@ import java.util.List;
  * and easier to create cloud computing simulations using CloudSim Plus.</p>
  *
  * <p>If you want a basic, but organized and reusable first example,
- * see the {@link BasicFirstExample}.</p>
+ * see the {@link BasicFirstExampleJava}.</p>
  *
  * @author Manoel Campos da Silva Filho
  * @since CloudSim Plus 1.0
- * @see BasicFirstExample
+ * @see BasicFirstExampleJava
  */
 public class ReduceExampleJava {
 
