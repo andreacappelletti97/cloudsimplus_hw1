@@ -10,6 +10,7 @@ import org.cloudbus.cloudsim.resources.PeSimple
 import org.cloudbus.cloudsim.utilizationmodels.{UtilizationModel, UtilizationModelDynamic}
 import org.cloudbus.cloudsim.vms.VmSimple
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder
+import org.cloudbus.cloudsim.vms.Vm
 
 import collection.JavaConverters.*
 
@@ -38,25 +39,41 @@ object BasicFirstExample:
   if(n==0) return hostList
   else return populateHost(hostList :+  HostSimple(
     config.getLong("basicFirstExample.host.RAMInMBs"),
-    config.getLong("basicFirstExample.host.StorageInMBs"),
     config.getLong("basicFirstExample.host.BandwidthInMBps"),
+    config.getLong("basicFirstExample.host.StorageInMBs")
+    ,
     pesList.asJava),
     n-1,
     pesList)
   }
 
+  def simpleVm(): Seq[Vm] ={
+    val vmList : Seq[Vm] = Seq.empty[Vm]
+    logger.info(s"List is $vmList")
+    logger.info(s"List size is ${vmList.length}")
+    vmList :+ VmSimple(
+      config.getLong("basicFirstExample.vm.mipsCapacity"),
+      config.getLong("basicFirstExample.vm.vmPes"))
+      .setRam(config.getLong("basicFirstExample.vm.RAMInMBs"))
+      .setBw(config.getLong("basicFirstExample.vm.BandwidthInMBps"))
+      .setSize(config.getLong("basicFirstExample.vm.StorageInMBs"))
+    logger.info(s"List is $vmList")
+    logger.info(s"List size is ${vmList.length}")
+    return vmList
+  }
+
   //Recursive function to populate VMs
-  def populateVms(vmList : Seq[VmSimple], n : Integer) : Seq[VmSimple] = {
+  def populateVms(vmList : Seq[Vm], n : Integer) : Seq[Vm] = {
+    logger.info(s"Entry number $n and list is $vmList")
     if(n==0) return vmList
-    else return 
-      val vm = VmSimple(
+    else return populateVms(
+      vmList :+ VmSimple(
         config.getLong("basicFirstExample.vm.mipsCapacity"),
         config.getLong("basicFirstExample.vm.vmPes"))
         .setRam(config.getLong("basicFirstExample.vm.RAMInMBs"))
         .setBw(config.getLong("basicFirstExample.vm.BandwidthInMBps"))
-        .setSize(config.getLong("basicFirstExample.vm.StorageInMBs"))
-      vmList :+ vm
-      populateVms(vmList, n-1)
+        .setSize(config.getLong("basicFirstExample.vm.StorageInMBs")),
+      n-1)
   }
 
   def populateCloudlets(cloudletsList : Seq[Cloudlet], n : Integer, utilizationModel : UtilizationModel) : Seq[Cloudlet] = {
@@ -85,10 +102,13 @@ object BasicFirstExample:
     val vmNumber : Integer = config.getInt("basicFirstExample.vm.number")
     val cloudletsNumber : Integer = config.getInt("basicFirstExample.cloudlet.number")
 
+
+
+
     // First time the list must be empty
     val newPesList: Seq[PeSimple] = Seq.empty[PeSimple]
     val newHostList: Seq[HostSimple] = Seq.empty[HostSimple]
-    val newVmList : Seq[VmSimple] = Seq.empty[VmSimple]
+    val newVmList : Seq[Vm] = Seq.empty[Vm]
     val newCloudletsList : Seq[Cloudlet] = Seq.empty[Cloudlet]
 
     //Recursively build the pesList
@@ -103,25 +123,28 @@ object BasicFirstExample:
     val dc0 = DatacenterSimple(cloudsim, hostList.asJava)
 
     //Recursively build the vmList
-    val vmList : Seq[VmSimple] = populateVms(newVmList, vmNumber)
+    val vmList : Seq[Vm] = populateVms(newVmList, vmNumber)
     logger.info(s"Created $vmNumber virtual machine: $vmList")
+
 
     //UtilizationModel defining the Cloudlets use only 50% of any resource all the time
     val utilizationModel = new UtilizationModelDynamic(
       config.getDouble("basicFirstExample.utilizationRatio"));
 
     //Recursively build the cloudletsList
-    val cloudletsList : Seq[Cloudlet] = populateCloudlets(newCloudletsList, cloudletsNumber, utilizationModel)
+    val cloudletsList : Seq[Cloudlet] = populateCloudlets(
+      newCloudletsList, cloudletsNumber, utilizationModel)
     logger.info(s"Created a list of cloudlets: $cloudletsList")
+
 
     broker0.submitVmList(vmList.asJava)
     broker0.submitCloudletList(cloudletsList.asJava)
 
     logger.info("Starting cloud simulation...")
+
     cloudsim.start()
 
     CloudletsTableBuilder(broker0.getCloudletFinishedList()).build()
-
 
 
 
