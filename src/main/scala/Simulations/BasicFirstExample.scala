@@ -48,14 +48,15 @@ object BasicFirstExample:
   //Recursive function to populate VMs
   def populateVms(vmList : Seq[VmSimple], n : Integer) : Seq[VmSimple] = {
     if(n==0) return vmList
-    else return populateVms(vmList :+ VmSimple(
-      config.getLong("basicFirstExample.vm.mipsCapacity"),
+    else return 
+      val vm = VmSimple(
+        config.getLong("basicFirstExample.vm.mipsCapacity"),
         config.getLong("basicFirstExample.vm.vmPes"))
-        .setRam(config.getLong("cloudSimulator.vm.RAMInMBs"))
-        .setBw(config.getLong("cloudSimulator.vm.BandwidthInMBps"))
-        .setSize(config.getLong("cloudSimulator.vm.StorageInMBs")),
-      n-1
-    )
+        .setRam(config.getLong("basicFirstExample.vm.RAMInMBs"))
+        .setBw(config.getLong("basicFirstExample.vm.BandwidthInMBps"))
+        .setSize(config.getLong("basicFirstExample.vm.StorageInMBs"))
+      vmList :+ vm
+      populateVms(vmList, n-1)
   }
 
   def populateCloudlets(cloudletsList : Seq[Cloudlet], n : Integer, utilizationModel : UtilizationModel) : Seq[Cloudlet] = {
