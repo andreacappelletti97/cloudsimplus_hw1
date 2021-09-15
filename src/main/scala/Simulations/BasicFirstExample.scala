@@ -2,11 +2,14 @@ package Simulations
 
 import HelperUtils.{CreateLogger, ObtainConfigReference}
 import org.cloudbus.cloudsim.brokers.{DatacenterBroker, DatacenterBrokerSimple}
+import org.cloudbus.cloudsim.cloudlets.{Cloudlet, CloudletSimple}
 import org.cloudbus.cloudsim.core.CloudSim
 import org.cloudbus.cloudsim.datacenters.DatacenterSimple
 import org.cloudbus.cloudsim.hosts.HostSimple
 import org.cloudbus.cloudsim.resources.PeSimple
+import org.cloudbus.cloudsim.utilizationmodels.{UtilizationModel, UtilizationModelDynamic}
 import org.cloudbus.cloudsim.vms.VmSimple
+import org.cloudsimplus.builders.tables.CloudletsTableBuilder
 
 import collection.JavaConverters.*
 
@@ -42,21 +45,33 @@ object BasicFirstExample:
     pesList)
   }
 
-
-  /*
   //Recursive function to populate VMs
-  def populateVms(vmList : Seq[VmSimple], n : Integer, pesList: Seq[PeSimple]) : Seq[VmSimple] = {
+  def populateVms(vmList : Seq[VmSimple], n : Integer) : Seq[VmSimple] = {
     if(n==0) return vmList
-    else return populateVms(
-      vmList :+ VmSimple(config.getLong("basicFirstExample.vm.mipsCapacity"), pesList.length)
-        .setRam(config.getLong("basicFirstExample.vm.RAMInMBs"))
-        .setBw(config.getLong("basicFirstExample.vm.BandwidthInMBps"))
-        .setSize(config.getLong("basicFirstExample.vm.StorageInMBs"))
-      ),
+    else return populateVms(vmList :+ VmSimple(
+      config.getLong("basicFirstExample.vm.mipsCapacity"),
+        config.getLong("basicFirstExample.vm.vmPes"))
+        .setRam(config.getLong("cloudSimulator.vm.RAMInMBs"))
+        .setBw(config.getLong("cloudSimulator.vm.BandwidthInMBps"))
+        .setSize(config.getLong("cloudSimulator.vm.StorageInMBs")),
       n-1
     )
   }
-*/
+
+  def populateCloudlets(cloudletsList : Seq[Cloudlet], n : Integer, utilizationModel : UtilizationModel) : Seq[Cloudlet] = {
+    if(n==0) return cloudletsList
+    else return populateCloudlets(
+      cloudletsList :+
+        CloudletSimple(
+          config.getLong("basicFirstExample.cloudlet.cloudletLength"),
+          config.getInt("basicFirstExample.cloudlet.cloudletPes"),
+          utilizationModel
+        ).setSizes(config.getLong("basicFirstExample.cloudlet.cloudletSize"))
+      , n - 1,
+      utilizationModel
+    )
+  }
+
 
   def Start() =
     val cloudsim = CloudSim()
@@ -67,21 +82,44 @@ object BasicFirstExample:
     val pesNumber : Integer = config.getInt("basicFirstExample.pesNumber")
     val hostNumber : Integer = config.getInt("basicFirstExample.host.number")
     val vmNumber : Integer = config.getInt("basicFirstExample.vm.number")
+    val cloudletsNumber : Integer = config.getInt("basicFirstExample.cloudlet.number")
 
     // First time the list must be empty
     val newPesList: Seq[PeSimple] = Seq.empty[PeSimple]
     val newHostList: Seq[HostSimple] = Seq.empty[HostSimple]
     val newVmList : Seq[VmSimple] = Seq.empty[VmSimple]
+    val newCloudletsList : Seq[Cloudlet] = Seq.empty[Cloudlet]
 
-    //Recursively build the pesList and hostList
+    //Recursively build the pesList
     val pesList : Seq[PeSimple] = populatePes(newPesList, pesNumber)
-    logger.info(s"Created one processing element: $pesList")
-    val hostList: Seq[HostSimple] = populateHost (newHostList ,hostNumber, pesList)
-    logger.info(s"Created host list: $hostList")
+    logger.info(s"Created $pesNumber processing element: $pesList")
 
+    //Recursively build the hostList
+    val hostList: Seq[HostSimple] = populateHost (newHostList ,hostNumber, pesList)
+    logger.info(s"Created $hostNumber host: $hostList")
+
+    //Create datacenter
     val dc0 = DatacenterSimple(cloudsim, hostList.asJava)
 
-    //val vmList : Seq[VmSimple] = populateVms(newVmList, vmNumber)
+    //Recursively build the vmList
+    val vmList : Seq[VmSimple] = populateVms(newVmList, vmNumber)
+    logger.info(s"Created $vmNumber virtual machine: $vmList")
+
+    //UtilizationModel defining the Cloudlets use only 50% of any resource all the time
+    val utilizationModel = new UtilizationModelDynamic(
+      config.getDouble("basicFirstExample.utilizationRatio"));
+
+    //Recursively build the cloudletsList
+    val cloudletsList : Seq[Cloudlet] = populateCloudlets(newCloudletsList, cloudletsNumber, utilizationModel)
+    logger.info(s"Created a list of cloudlets: $cloudletsList")
+
+    broker0.submitVmList(vmList.asJava)
+    broker0.submitCloudletList(cloudletsList.asJava)
+
+    logger.info("Starting cloud simulation...")
+    cloudsim.start()
+
+    CloudletsTableBuilder(broker0.getCloudletFinishedList()).build()
 
 
 
