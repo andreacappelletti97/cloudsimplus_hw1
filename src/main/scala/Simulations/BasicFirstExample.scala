@@ -11,8 +11,9 @@ import org.cloudbus.cloudsim.utilizationmodels.{UtilizationModel, UtilizationMod
 import org.cloudbus.cloudsim.vms.VmSimple
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder
 import org.cloudbus.cloudsim.vms.Vm
-
+import org.cloudsimplus.builders.tables.CsvTable
 import collection.JavaConverters.*
+import java.io.PrintStream
 
 class BasicFirstExample
 
@@ -102,9 +103,6 @@ object BasicFirstExample:
     val vmNumber : Integer = config.getInt("basicFirstExample.vm.number")
     val cloudletsNumber : Integer = config.getInt("basicFirstExample.cloudlet.number")
 
-
-
-
     // First time the list must be empty
     val newPesList: Seq[PeSimple] = Seq.empty[PeSimple]
     val newHostList: Seq[HostSimple] = Seq.empty[HostSimple]
@@ -146,6 +144,10 @@ object BasicFirstExample:
 
     CloudletsTableBuilder(broker0.getCloudletFinishedList()).build()
 
+
+    val csv = CsvTable();
+    csv.setPrintStream(new PrintStream(new java.io.File(config.getString("basicFirstExample.cvsOutputLocation"))));
+    new CloudletsTableBuilder(broker0.getCloudletFinishedList(), csv).build();
 
 
 
