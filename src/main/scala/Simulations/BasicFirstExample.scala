@@ -8,14 +8,17 @@ import org.cloudbus.cloudsim.datacenters.DatacenterSimple
 import org.cloudbus.cloudsim.hosts.HostSimple
 import org.cloudbus.cloudsim.resources.PeSimple
 import org.cloudbus.cloudsim.utilizationmodels.{UtilizationModel, UtilizationModelDynamic}
-import org.cloudbus.cloudsim.vms.VmSimple
+import org.cloudbus.cloudsim.vms.{Vm, VmCost, VmSimple}
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder
-import org.cloudbus.cloudsim.vms.Vm
 import org.cloudsimplus.builders.tables.CsvTable
+import scala.collection.JavaConverters._
+
 import collection.JavaConverters.*
 import java.io.PrintStream
 
 class BasicFirstExample
+
+
 
 object BasicFirstExample:
   //Init the config file to get static params
@@ -92,10 +95,28 @@ object BasicFirstExample:
   }
 
 
+
+  def computeCost(vmList : Seq[VmSimple], n: Integer): Unit = {
+    if (n < 0) return vmList
+    else
+      if (vmList(n).getTotalExecutionTime > 0){
+        val cost = VmCost(vmList(n))
+        //logger.info("The cost is the following!")
+        logger.info(s"$cost")
+        return computeCost(vmList, n-1)
+      }
+      else { return computeCost(vmList, n-1) }
+
+  }
+
+
   def Start() =
     val cloudsim = CloudSim()
     //Creates a broker that is a software acting on behalf a cloud customer to manage his/her VMs and Cloudlets
     val broker0 = DatacenterBrokerSimple(cloudsim)
+
+    //Destroys idle VMs after some time
+    broker0.setVmDestructionDelay(0.2);
 
     //Init the data from the config
     val pesNumber : Integer = config.getInt("basicFirstExample.pesNumber")
@@ -119,6 +140,14 @@ object BasicFirstExample:
 
     //Create datacenter
     val dc0 = DatacenterSimple(cloudsim, hostList.asJava)
+      .setSchedulingInterval(config.getDouble("basicFirstExample.dcSchedulingInterval"));
+
+    //Set a cost for each resource usage
+    dc0.getCharacteristics()
+      .setCostPerSecond(config.getDouble("basicFirstExample.cpuCostPerSecond"))
+      .setCostPerMem(config.getDouble("basicFirstExample.ramCostPerMb"))
+      .setCostPerStorage(config.getDouble("basicFirstExample.storageCostPerMb"))
+      .setCostPerBw(config.getDouble("basicFirstExample.bwCostPerMb"));
 
     //Recursively build the vmList
     val vmList : Seq[Vm] = populateVms(newVmList, vmNumber)
@@ -144,11 +173,19 @@ object BasicFirstExample:
 
     CloudletsTableBuilder(broker0.getCloudletFinishedList()).build()
 
-
+    //Build CSV file into the /output directory
     val csv = CsvTable();
     csv.setPrintStream(new PrintStream(new java.io.File(config.getString("basicFirstExample.cvsOutputLocation"))));
     new CloudletsTableBuilder(broker0.getCloudletFinishedList(), csv).build();
 
+
+    //Get the VMList from the broker
+    val vmCreatedList : Seq[VmSimple] = broker0.getVmCreatedList().asScala.toSeq
+    //logger.info(s"$vmCreatedList")
+    val numberOfVms = vmCreatedList.length
+    //logger.info(s"$numberOfVms")
+    //Compute the cost of running the VMs
+    computeCost(vmCreatedList, numberOfVms - 1)
 
 
 
