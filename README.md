@@ -1,26 +1,106 @@
 # Homework 1
-## Author
-Andrea Cappelletti
-UIN: 674197701
-acappe2@uic.edu
-
-
 ### Create cloud simulators in Scala for evaluating executions of applications in cloud datacenters with different characteristics and deployment models.
 ### Grade: 8%
-#### This Git repo contains the description of the first homework and an example implementation of a baseline cloud simulation in Scala. This repo can be cloned using the command git clone git@github.com:0x1DOCD00D/CloudOrgSimulator.git. If interested to learn the implementation details, students can clone CloudSimPlus or ingest it directly into IntelliJ from its [website](https://cloudsimplus.org/) or the [Github repo](https://github.com/manoelcampos/cloudsim-plus), however, it is not required for this homework.
 
-## Preliminaries
-As part of  homework assignment you will gain experience with creating and managing your Git repository, obtaining an open-source cloud simulation infrastructure Java project from a public Git repo, creating tests using widely popular Scalatest framework, and expanding on the provided SBT build and run script for your simulation application. Doing this homework is essential for successful completion of the rest of this course, since all other homeworks and the course project will share the same features of this homework: branching, merging, committing, pushing your code into your Git repo, creating test cases and build scripts, and using various tools for diagnosing problems with your applications and the infrastructures that these applications are based on.
+## Author
+Andrea Cappelletti  
+UIN: 674197701   
+acappe2@uic.edu  
 
-First things first, you must create your account at either [BitBucket](https://bitbucket.org/) or [Github](https://github.com/), which are Git repo management systems. You can fork this repository into your account and proceed with the implementation of the homework. Please make sure that you write your name in your README.md in your repo as it is specified on the class roster. Since it is a large class, please use your UIC email address for communications and avoid emails from other accounts like funnybunny2000@gmail.com. If you don't receive a response within 12 hours, please contact your TA or me, it may be a case that your direct emails went to the spam folder.
+## 1) Power consumption
+The goal of this series of simulation is to evaluate the power consumption of a cloud
+environment with different characteristics.
 
-Next, if you haven't done so, you will install [IntelliJ](https://www.jetbrains.com/student/) with your academic license, the JDK, the Scala runtime and the IntelliJ Scala plugin and the [Simple Build Toolkit (SBT)](https://www.scala-sbt.org/1.x/docs/index.html) and make sure that you can create, compile, and run Java and Scala programs. Please make sure that you can run [various Java tools from your chosen JDK between versions 8 and 16](https://docs.oracle.com/en/java/javase/index.html).
 
-In this and all consecutive homeworks and in the course project you will use logging and configuration management frameworks. You will comment your code extensively and supply logging statements at different logging levels (e.g., TRACE, INFO, ERROR) to record information at some salient points in the executions of your programs. All input and configuration variables must be supplied through configuration files -- hardcoding these values in the source code is prohibited and will be punished by taking a large percentage of points from your total grade! You are expected to use [Logback](https://logback.qos.ch/) and [SLFL4J](https://www.slf4j.org/) for logging and [Typesafe Conguration Library](https://github.com/lightbend/config) for managing configuration files. These and other libraries should be imported into your project using your script [build.sbt](https://www.scala-sbt.org) that I already created for you as a baseline. These libraries and frameworks are widely used in the industry, so learning them is the time well spent to improve your resumes.
+## 2) TimeShared and SpaceShared policies
+The goal of this series of simulation is to explore the TimeShared and SpaceShare policies and to understand
+under which circumstances one outperforms the other in terms of defined performance metrics.
 
-Even though CloudSimPlus is written in Java, you can create your cloud simulations using Scala as a fully pure functional (not imperative) implementation. As you see from the StackOverflow survey, knowledge of Scala is highly paid and in great demand, and it is expected that you pick it relatively fast, especially since it is tightly integrated with Java. I recommend using the book on Programming in Scala Fourth and Fifth Editions by Martin Odersky et al. You can obtain this book using the academic subscription on Safari Books Online. There are many other books and resources available on the Internet to learn Scala. Those who know more about functional programming can use the book on Functional Programming in Scala published on Sep 14, 2014 by Paul Chiusano and Runar Bjarnason.
+## 3) Contribution
+While I was getting familiar with the CloudSimPlus framework, running the examples provided by the official repo,
+I noticed that there was a bug in the example   
 
-When creating your cloud simulation program code in Scala, you should avoid using **var**s and while/for loops that iterate over collections using [induction variables](https://en.wikipedia.org/wiki/Induction_variable). Instead, you should learn to use collection methods **map**, **flatMap**, **foreach**, **filter** and many others with lambda functions, which make your code linear and easy to understand. Also, avoid mutable variables that expose the internal states of your modules at all cost. Points will be deducted for having unreasonable **var**s and inductive variable loops without explanation why mutation is needed in your code unless it is confined to method scopes - you can always do without it.
+*CostsExample1.java*    
+
+Under ` /cloudsim-plus-examples/src/main/java/org/cloudsimplus/examples/costs/ `
+
+The output of this simulation was
+```
+WARN  17946.90: VmAllocationPolicySimple: No suitable host found for Vm 4 in Datacenter 1
+WARN  17946.90: VmAllocationPolicySimple: No suitable host found for Vm 5 in Datacenter 1
+ERROR 17947.00: DatacenterBrokerSimple2: 2 of the requested 6 VMs couldn't be created because suitable Hosts weren't found in any available Datacenter.
+INFO  17952.00: DatacenterBrokerSimple2: Trying to create Vm 4 in DatacenterSimple1
+INFO  17952.00: DatacenterBrokerSimple2: Trying to create Vm 5 in DatacenterSimple1
+```
+
+The reason is that there were 6 VMs but enough resources only to allocate 4 of them.
+The idea behind the example is that 2 VMs should be idle.
+
+I decided to contribute to the project and open a pull request to fix this bug with the author of the CloudSimPlus framework.
+
+![alt text](assets/pull_request.png)
+
+The author recognized the bug, he accepted my pull request.  
+We fixed it.
+
+Now the simulation of the example can be executed and the output is the following
+```
+                                         SIMULATION RESULTS
+
+|Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+|--------|-------|--|----|---------|--|---------|-----------|-----------|---------|----------|--------
+|      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+|       0|SUCCESS| 1|   0|        8| 0|        4|     100000|          2|        0|       200|     200
+|       1|SUCCESS| 1|   0|        8| 0|        4|     200000|          2|        0|       400|     400
+|       2|SUCCESS| 1|   1|        8| 1|        4|     300000|          2|        0|       600|     600
+|       3|SUCCESS| 1|   1|        8| 1|        4|     400000|          2|        0|       800|     800
+
+Vm 0 costs ($) for   401.32 execution seconds - CPU:    16.05$ RAM:    10.24$ Storage:    10.00$ BW:     5.00$ Total:    41.29$
+Vm 1 costs ($) for   800.32 execution seconds - CPU:    32.01$ RAM:    10.24$ Storage:    10.00$ BW:     5.00$ Total:    57.25$
+Vm 2 costs ($) for     1.10 execution seconds - CPU:     0.04$ RAM:    10.24$ Storage:    10.00$ BW:     5.00$ Total:    25.28$
+Vm 3 costs ($) for     1.10 execution seconds - CPU:     0.04$ RAM:    10.24$ Storage:    10.00$ BW:     5.00$ Total:    25.28$
+Total cost ($) for   4 created VMs from   6 in DC 1:    48.15$         40.96$             40.00$        20.00$          149.11$
+```
+## Programming technology
+All the simulations has been written in Scala using a Functional Programming approach.   
+
+While writing the simulations the following best practices has been adopted
+
+- Large usage of logging to understand the system status; 
+
+
+- Configuration libraries and files to provide input values for the simulations; 
+
+
+- No while or for loop is present, instead recursive functions are largely used into the project.
+
+## Installation
+There are mainly two ways to run them: through IntelliJ or via command line.
+This section explains how to properly run them.      
+
+In order to run the simulations on IntelliJ we have first to clone this repo
+```
+git clone https://github.com/andreacappelletti97/cloudsimplus_hw1.git
+```
+
+### IntelliJ
+
+Then open IntelliJ IDE and select Open existing project  
+Select the directory of the repo just cloned: cloudsimplus_hw1  
+IntelliJ will import the entire project  
+In order to run the simulations go to clousimplus_hw1/src/main/scala/Simulation
+
+### Command Line
+In order to run the simulations from cli we need to use sbt  
+Run the following commands from the root directory of the project  
+```
+sbt clean compile test
+```
+And then
+```
+sbt clean compile run
+```
+
 
 ## Overview
 In this homework, you will experiment with creading cloud computing datacenters and running jobs on them to determine how different organizations and pricing strategies result in variabilities of cloud offerings. Of course, creating real cloud computing datacenters takes hundreds of millions of dollars and acres of land and a lot of complicated equipment, and you don't want to spend your money and resources creating physical cloud datacenters for this homework ;-). Instead, we have a cloud simulation framework, a software package that enables cloud engineers to model the cloud environments using different cloud computing models that we study in the lectures. We will use [*CloudSimPlus* simulation framework](https://cloudsimplus.org/) that is an extension of *CloudSim*, a framework and a set of libraries for modeling and simulating cloud computing infrastructure and services.

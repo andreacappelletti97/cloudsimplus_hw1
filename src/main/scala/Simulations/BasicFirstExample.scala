@@ -1,18 +1,24 @@
 package Simulations
 
 import HelperUtils.{CreateLogger, ObtainConfigReference}
+import com.sun.jdi.Value
 import org.cloudbus.cloudsim.brokers.{DatacenterBroker, DatacenterBrokerSimple}
 import org.cloudbus.cloudsim.cloudlets.{Cloudlet, CloudletSimple}
 import org.cloudbus.cloudsim.core.CloudSim
 import org.cloudbus.cloudsim.datacenters.DatacenterSimple
 import org.cloudbus.cloudsim.hosts.HostSimple
 import org.cloudbus.cloudsim.resources.PeSimple
-import org.cloudbus.cloudsim.utilizationmodels.{UtilizationModel, UtilizationModelDynamic}
+import org.cloudbus.cloudsim.utilizationmodels.{UtilizationModel, UtilizationModelDynamic, UtilizationModelFull}
 import org.cloudbus.cloudsim.vms.{Vm, VmCost, VmSimple}
 import org.cloudsimplus.builders.tables.CloudletsTableBuilder
 import org.cloudsimplus.builders.tables.CsvTable
-import scala.collection.JavaConverters._
+import org.cloudsimplus.listeners.EventListener
+import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared
+import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared
+import org.cloudbus.cloudsim.schedulers.vm.VmScheduler
+import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared
 
+import scala.collection.JavaConverters.*
 import collection.JavaConverters.*
 import java.io.PrintStream
 
@@ -28,6 +34,8 @@ object BasicFirstExample:
   }
   //Init the logger
   val logger = CreateLogger(classOf[BasicCloudSimPlusExample])
+
+
 
 
   //Recursive function to populate PEs
@@ -76,7 +84,9 @@ object BasicFirstExample:
         config.getLong("basicFirstExample.vm.vmPes"))
         .setRam(config.getLong("basicFirstExample.vm.RAMInMBs"))
         .setBw(config.getLong("basicFirstExample.vm.BandwidthInMBps"))
-        .setSize(config.getLong("basicFirstExample.vm.StorageInMBs")),
+        .setSize(config.getLong("basicFirstExample.vm.StorageInMBs"))
+        .setCloudletScheduler(new CloudletSchedulerTimeShared)
+      ,
       n-1)
   }
 
@@ -88,13 +98,13 @@ object BasicFirstExample:
           config.getLong("basicFirstExample.cloudlet.cloudletLength"),
           config.getInt("basicFirstExample.cloudlet.cloudletPes"),
           utilizationModel
-        ).setSizes(config.getLong("basicFirstExample.cloudlet.cloudletSize"))
+        )
+          //Set input and output sizes
+          .setSizes(config.getLong("basicFirstExample.cloudlet.cloudletSize"))
       , n - 1,
       utilizationModel
     )
   }
-
-
 
   def computeCost(vmList : Seq[VmSimple], n: Integer): Unit = {
     if (n < 0) return vmList
@@ -109,8 +119,8 @@ object BasicFirstExample:
 
   }
 
-
   def Start() =
+    logger.debug("Running the simulation...")
     val cloudsim = CloudSim()
     //Creates a broker that is a software acting on behalf a cloud customer to manage his/her VMs and Cloudlets
     val broker0 = DatacenterBrokerSimple(cloudsim)
@@ -144,7 +154,7 @@ object BasicFirstExample:
 
     //Set a cost for each resource usage
     dc0.getCharacteristics()
-      .setCostPerSecond(config.getDouble("basicFirstExample.cpuCostPerSecond"))
+      .setCostPerSecond(config.getDouble("basicFirstExample.peCostPerSecond"))
       .setCostPerMem(config.getDouble("basicFirstExample.ramCostPerMb"))
       .setCostPerStorage(config.getDouble("basicFirstExample.storageCostPerMb"))
       .setCostPerBw(config.getDouble("basicFirstExample.bwCostPerMb"));
@@ -158,9 +168,12 @@ object BasicFirstExample:
     val utilizationModel = new UtilizationModelDynamic(
       config.getDouble("basicFirstExample.utilizationRatio"));
 
+    //Cloudlet always utilizes a given allocated resource from its Vm at 100%, all the time.
+    val utilizationModelFull = new UtilizationModelFull
+
     //Recursively build the cloudletsList
     val cloudletsList : Seq[Cloudlet] = populateCloudlets(
-      newCloudletsList, cloudletsNumber, utilizationModel)
+      newCloudletsList, cloudletsNumber, utilizationModelFull)
     logger.info(s"Created a list of cloudlets: $cloudletsList")
 
 
@@ -171,13 +184,14 @@ object BasicFirstExample:
 
     cloudsim.start()
 
-    CloudletsTableBuilder(broker0.getCloudletFinishedList()).build()
+    //Get the CloudLets finished list from the broker
+    val finishedCloudlets = broker0.getCloudletFinishedList()
+    CloudletsTableBuilder(finishedCloudlets).build()
 
     //Build CSV file into the /output directory
     val csv = CsvTable();
     csv.setPrintStream(new PrintStream(new java.io.File(config.getString("basicFirstExample.cvsOutputLocation"))));
-    new CloudletsTableBuilder(broker0.getCloudletFinishedList(), csv).build();
-
+    new CloudletsTableBuilder(finishedCloudlets, csv).build();
 
     //Get the VMList from the broker
     val vmCreatedList : Seq[VmSimple] = broker0.getVmCreatedList().asScala.toSeq
