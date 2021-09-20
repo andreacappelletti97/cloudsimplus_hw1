@@ -76,7 +76,6 @@ object PowerSimulation:
       .setStartupPower(config.getDouble(configReference + "host.startUpPower"))
       .setShutDownPower(config.getDouble(configReference + "host.shutDownPower"));
       newHostSimple.setPowerModel(powerModel)
-      newHostSimple.setId(1)
       //Enable utilization stats
       newHostSimple.enableUtilizationStats()
       return populateHost(hostList :+ newHostSimple, n-1, pesList)
@@ -111,7 +110,7 @@ object PowerSimulation:
           .setFileSize(config.getLong(configReference +"cloudlet.inputSize"))
           .setOutputSize(config.getLong(configReference +"cloudlet.outputSize"))
           //Set utilization models
-          .setUtilizationModelCpu(new UtilizationModelFull())
+          .setUtilizationModelCpu(utilizationModel)
           .setUtilizationModelRam(utilizationModel)
           .setUtilizationModelBw(utilizationModel)
       , n - 1,
@@ -129,6 +128,8 @@ object PowerSimulation:
       //The total Host's CPU utilization for the time specified by the map key
       val utilizationPercentMean = cpuStats.getMean();
       val watts = host.getPowerModel().getPower(utilizationPercentMean);
+      System.out.println("Samples collected: " + cpuStats.count)
+      System.out.println("Samples collected: " + cpuStats)
       System.out.printf(
       "Host %2d CPU Usage mean: %6.1f%% | Power Consumption mean: %8.0f W%n",
         host.getId(), utilizationPercentMean * 100, watts);
@@ -142,12 +143,9 @@ object PowerSimulation:
       val vm = vmList(n)
       val myPower = vm.getHost.getPowerModel.getPower(1)
       val powerModel = vm.getHost.getPowerModel
-      System.out.println("PowerModel "  + myPower)
       val hostStaticPower = 35
       val hostStaticPowerByVm = hostStaticPower / vm.getHost().getVmCreatedList().size()
-      System.out.println("A: 35 "  + hostStaticPowerByVm)
       val vmRelativeCpuUtilization = vm.getCpuUtilizationStats().getMean() / vm.getHost().getVmCreatedList().size();
-      System.out.println("B: "  + vmRelativeCpuUtilization)
       val vmPower = powerModel.getPower(vmRelativeCpuUtilization) - hostStaticPower + hostStaticPowerByVm; // W
       val cpuStats = vm.getCpuUtilizationStats();
       System.out.printf(
@@ -213,3 +211,5 @@ object PowerSimulation:
     CloudletsTableBuilder(finishedCloudlets).build()
 
     printHostPowerConsumption(hostList, hostNumber - 1)
+    printVmPowerConsumption(vmList, vmNumber - 1)
+
