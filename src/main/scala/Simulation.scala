@@ -1,6 +1,6 @@
 
 import HelperUtils.{CreateLogger, ObtainConfigReference}
-import Simulations.{BasicCloudSimPlusExample, BasicFirstExample, MyFirstExample, PowerSimulation, ReduceExample}
+import Simulations.{BasicCloudSimPlusExample, BasicFirstExample, MyFirstExample, PowerSimulation, ReduceExample, Simulation1}
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
 
@@ -17,7 +17,8 @@ object Simulation:
     //logger.info("Finished cloud simulation...")
     //ReduceExample.start()
     //BasicFirstExample.Start()
-    PowerSimulation.Start()
+    //PowerSimulation.Start()
+      Simulation1.Start()
 
   /*
     @main def runReduceExample =
