@@ -1,4 +1,5 @@
 package Simulations
+import Examples.BasicCloudSimPlusExample
 import HelperUtils.{CreateLogger, ObtainConfigReference}
 import com.sun.jdi.Value
 import org.cloudbus.cloudsim.brokers.{DatacenterBroker, DatacenterBrokerSimple}
@@ -17,11 +18,11 @@ import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerSpaceShared
 import org.cloudbus.cloudsim.schedulers.cloudlet.CloudletSchedulerTimeShared
 import org.cloudbus.cloudsim.schedulers.vm.VmScheduler
 import org.cloudbus.cloudsim.schedulers.vm.VmSchedulerTimeShared
-import org.cloudbus.cloudsim.provisioners.ResourceProvisioner;
-import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple;
-import org.cloudbus.cloudsim.power.models.PowerModel;
-import org.cloudbus.cloudsim.power.models.PowerModelHost;
-import org.cloudbus.cloudsim.power.models.PowerModelHostSimple;
+import org.cloudbus.cloudsim.provisioners.ResourceProvisioner
+import org.cloudbus.cloudsim.provisioners.ResourceProvisionerSimple
+import org.cloudbus.cloudsim.power.models.PowerModel
+import org.cloudbus.cloudsim.power.models.PowerModelHost
+import org.cloudbus.cloudsim.power.models.PowerModelHostSimple
 
 import scala.collection.JavaConverters.*
 import collection.JavaConverters.*
