@@ -14,7 +14,7 @@ import collection.JavaConverters.*
 
 object MyFirstExample:
   //Init the config file to get static params
-  val config = ObtainConfigReference("cloudSimulator") match {
+  val config = ObtainConfigReference("simulation1") match {
     case Some(value) => value
     case None => throw new RuntimeException("Cannot obtain a reference to the config data.")
   }
