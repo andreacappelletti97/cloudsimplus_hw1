@@ -1,5 +1,6 @@
 package Extensions;
 
+import Extentions.CloudletExtension;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.brokers.DatacenterBroker;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
@@ -32,7 +33,7 @@ import static java.util.Objects.requireNonNull;
  * @author Anton Beloglazov
  * @author Manoel Campos da Silva Filho
  */
-public abstract class DataCenterExtended extends CloudSimEntity implements DatacenterBroker {
+public abstract class DataCenterBrokerExtended extends CloudSimEntity implements DatacenterBroker {
     /**
      * A message tag used for the broker to send a message to itself requesting the shutdown.
      * That ensures a graceful shutdown, after other broker events are processed.
@@ -150,7 +151,7 @@ public abstract class DataCenterExtended extends CloudSimEntity implements Datac
      * @param simulation the CloudSim instance that represents the simulation the Entity is related to
      * @param name the DatacenterBroker name
      */
-    public DataCenterExtended(final CloudSim simulation, final String name) {
+    public DataCenterBrokerExtended(final CloudSim simulation, final String name) {
         super(simulation);
         if(!name.isEmpty()) {
             setName(name);
@@ -974,7 +975,7 @@ public abstract class DataCenterExtended extends CloudSimEntity implements Datac
          * degrading performance in large scale simulations. */
         int createdCloudlets = 0;
         for (final Iterator<Cloudlet> it = cloudletWaitingList.iterator(); it.hasNext(); ) {
-            final Extensions.CloudletExtended cloudlet = (CloudletExtended)it.next();
+            final CloudletExtension cloudlet = (CloudletExtension)it.next();
             if (!cloudlet.getLastTriedDatacenter().equals(Datacenter.NULL)) {
                 continue;
             }

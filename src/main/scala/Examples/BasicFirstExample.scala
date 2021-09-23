@@ -25,7 +25,7 @@ class BasicFirstExample
 
 object BasicFirstExample:
   //Init the config file to get static params
-  val config = ObtainConfigReference("simulation1") match {
+  val config = ObtainConfigReference("cloudSimulator") match {
     case Some(value) => value
     case None => throw new RuntimeException("Cannot obtain a reference to the config data.")
   }

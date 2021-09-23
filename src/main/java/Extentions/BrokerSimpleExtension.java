@@ -1,13 +1,18 @@
 package Extentions;
 
+import org.cloudbus.cloudsim.brokers.DatacenterBroker;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.datacenters.Datacenter;
 import org.cloudbus.cloudsim.vms.Vm;
+import org.cloudbus.cloudsim.vms.VmSimple;
 
-public class BrokerSimpleExtension extends Extensions.DataCenterExtended {
+import javax.xml.crypto.Data;
+import java.util.List;
 
+public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
 
+        final boolean APPLY_LOCALITY_POLICY = false;
     /**
      * Index of the last VM selected from the {@link #getVmExecList()}
      * to run some Cloudlet.
@@ -40,6 +45,13 @@ public class BrokerSimpleExtension extends Extensions.DataCenterExtended {
         this.lastSelectedDcIndex = -1;
     }
 
+    @Override
+    public DatacenterBroker submitCloudletList(List<? extends Cloudlet> list) {
+
+
+        return super.submitCloudletList(list);
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -57,6 +69,11 @@ public class BrokerSimpleExtension extends Extensions.DataCenterExtended {
      * @see DatacenterBroker#setDatacenterMapper(java.util.function.BiFunction)
      * @see #setSelectClosestDatacenter(boolean)
      */
+
+
+
+
+
     @Override
     protected Datacenter defaultDatacenterMapper(final Datacenter lastDatacenter, final Vm vm) {
         if(getDatacenterList().isEmpty()) {
@@ -73,7 +90,17 @@ public class BrokerSimpleExtension extends Extensions.DataCenterExtended {
             return Datacenter.NULL;
         }
 
-        return getDatacenterList().get(++lastSelectedDcIndex);
+        for(Datacenter datacenterWrapper : getDatacenterList()){
+            if(datacenterWrapper instanceof DataCenterSimpleExtended){
+                DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenterWrapper;
+            }
+        }
+
+        Datacenter datacenter = getDatacenterList().get(++lastSelectedDcIndex);
+        if(datacenter instanceof DataCenterSimpleExtended) {
+            DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) getDatacenterList().get(++lastSelectedDcIndex);
+        }
+        return datacenter;
     }
 
     /**
@@ -85,6 +112,28 @@ public class BrokerSimpleExtension extends Extensions.DataCenterExtended {
      * @param cloudlet {@inheritDoc}
      * @return {@inheritDoc}
      */
+
+    private Vm selectVmLocality(List<Vm> vmList, Cloudlet cloudlet) {
+        if (cloudlet instanceof CloudletExtension) {
+            CloudletExtension cloudletExtension = (CloudletExtension) cloudlet;
+            for (Vm vmWrapper : vmList) {
+                Datacenter datacenter = vmWrapper.getHost().getDatacenter();
+                if (datacenter instanceof DataCenterSimpleExtended) {
+                    DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenter;
+                    if ((dataCenterSimpleExtended.getLocality() == cloudletExtension.getLocality())) {
+                        System.out.println("GOT LOCALITY");
+                        return vmWrapper;
+                    }
+                }
+
+
+            } return null;
+
+        } return null;
+    }
+
+
+
     @Override
     protected Vm defaultVmMapper(final Cloudlet cloudlet) {
         if (cloudlet.isBoundToVm()) {
@@ -98,6 +147,31 @@ public class BrokerSimpleExtension extends Extensions.DataCenterExtended {
         /*If the cloudlet isn't bound to a specific VM or the bound VM was not created,
         cyclically selects the next VM on the list of created VMs.*/
         lastSelectedVmIndex = ++lastSelectedVmIndex % getVmExecList().size();
-        return getVmFromCreatedList(lastSelectedVmIndex);
+        Vm vm = null;
+        if(APPLY_LOCALITY_POLICY) {
+             vm = selectVmLocality(getVmCreatedList(), cloudlet);
+            if (vm == null) {
+
+                vm = getVmFromCreatedList(lastSelectedVmIndex);
+            }
+        } else {
+             vm = getVmFromCreatedList(lastSelectedVmIndex);
+        }
+
+        if(vm instanceof VmSimple){
+            VmSimple vmSimple = (VmSimple) vm;
+        }
+
+        if(cloudlet instanceof CloudletExtension){
+            CloudletExtension cloudletExtension = (CloudletExtension) cloudlet;
+            Datacenter datacenter = vm.getHost().getDatacenter();
+            if(datacenter instanceof DataCenterSimpleExtended){
+                DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenter;
+                if(( dataCenterSimpleExtended.getLocality() != cloudletExtension.getLocality())){
+                    cloudletExtension.setSubmissionDelay(1200);
+                }
+            }
+        }
+        return vm;
     }
 }
