@@ -28,19 +28,19 @@ import scala.collection.JavaConverters.*
 import collection.JavaConverters.*
 import java.io.PrintStream
 
+/* IaaS power consumption */
+class Simulation4
 
-class PowerSimulation
-
-object PowerSimulation:
+object Simulation4:
   //Init the config file to get static params
-  val config = ObtainConfigReference("simulation1") match {
+  val config = ObtainConfigReference("simulation3") match {
     case Some(value) => value
     case None => throw new RuntimeException("Cannot obtain a reference to the config data.")
   }
   //Init the logger
   val logger = CreateLogger(classOf[BasicCloudSimPlusExample])
   //Define the base config reference in the Json config file
-  val configReference = "powerSimulation."
+  val configReference = "simulation3."
 
   //Recursive function to populate PEs
   def populatePes(pesList : Seq[PeSimple],n : Integer) : Seq[PeSimple] = {
@@ -91,7 +91,7 @@ object PowerSimulation:
         config.getLong(configReference +"vm.vmPes"))
         .setRam(config.getLong(configReference +"vm.RAMInMBs"))
         .setBw(config.getLong(configReference +"vm.BandwidthInMBps"))
-        .setSize(config.getLong(configReference +"vm.StorageInMBs"))
+        .setSize(config.getLong(configReference +"vm.imageSize"))
         .setCloudletScheduler(new CloudletSchedulerTimeShared)
         newVm.enableUtilizationStats()
       return populateVms(
@@ -211,6 +211,6 @@ object PowerSimulation:
     val finishedCloudlets = broker0.getCloudletFinishedList()
     CloudletsTableBuilder(finishedCloudlets).build()
 
-    //printHostPowerConsumption(hostList, hostNumber - 1)
-    //printVmPowerConsumption(vmList, vmNumber - 1)
+    printHostPowerConsumption(hostList, hostNumber - 1)
+    printVmPowerConsumption(vmList, vmNumber - 1)
 

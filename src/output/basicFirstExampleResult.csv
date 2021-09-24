@@ -1,0 +1,4 @@
+Cloudlet;Status ;DC;Host;Host PEs ;VM;VM PEs   ;CloudletLen;CloudletPEs;StartTime;FinishTime;ExecTime
+ID;;ID;ID;CPU cores;ID;CPU cores;MI;CPU cores;Seconds;Seconds;Seconds
+0;SUCCESS;2;0;8;0;4;10000;2;0;10;10
+1;SUCCESS;2;0;8;0;4;10000;2;0;20;20

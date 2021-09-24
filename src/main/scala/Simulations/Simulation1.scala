@@ -30,6 +30,7 @@ import scala.collection.JavaConverters.*
 import collection.JavaConverters.*
 import java.io.PrintStream
 
+/* Policies evaluation */
 class Simulation1
 
 object Simulation1 :
@@ -43,8 +44,10 @@ object Simulation1 :
   //Define the base config reference in the Json config file
   val configReference = "simulation1."
 
+  /* This recursive function dynamically creates the datacenter based on the application config */
   def populateDataCenter(cloudsim: CloudSim, dcList : Seq[Datacenter], n : Integer, dcNumber : Integer) : Seq[Datacenter] = {
     if(n == dcNumber )
+      //The initialization has compelted, return the datacenters list
       logger.info(s"Created $dcNumber datacenters: $dcList")
       return dcList
     else
@@ -61,11 +64,20 @@ object Simulation1 :
       //Recursively build the hostList
       val hostList: Seq[HostSimple] = populateHost (newHostList ,hostNumber, pesList, n)
       logger.info(s"Created $hostNumber host: $hostList")
+
       //Create datacenter
       val dc = DatacenterSimple(cloudsim, hostList.asJava, new VmAllocationPolicySimple)
-        .setSchedulingInterval(config.getDouble(configReference + "dcSchedulingInterval"));
+        .setSchedulingInterval(config.getDouble(configReference + "dcSchedulingInterval"))
       logger.info(s"Created a new datacenter: $dc")
 
+      //Set datacenter costs
+      dc.getCharacteristics()
+        .setCostPerSecond(config.getDouble(configReference + "dc" + n +".peCostPerSecond"))
+        .setCostPerMem(config.getDouble(configReference + "dc" + n +".ramCostPerMb"))
+        .setCostPerStorage(config.getDouble(configReference + "dc" + n +".storageCostPerMb"))
+        .setCostPerBw(config.getDouble(configReference + "dc" + n +".bwCostPerMb"))
+
+      //Continue to create dcS
       return populateDataCenter(cloudsim,
         dcList :+ dc,
         n + 1,
@@ -73,15 +85,15 @@ object Simulation1 :
       )
   }
 
-  //Recursive function to populate PEs
+  /* This recursive function dynamically creates the PEs based on the application config */
   def populatePes(pesList : Seq[PeSimple],n : Integer, dcId: Integer) : Seq[PeSimple] = {
     logger.debug("Creating PEs ...")
     if(n==0) return pesList
     else return populatePes(pesList :+ PeSimple(
-      config.getLong(configReference + "dc" + dcId + ".host.mipsCapacity")), n-1, dcId)
+      config.getDouble(configReference + "dc" + dcId + ".host.mipsCapacity")), n-1, dcId)
   }
 
-  //Recursive function to populate Hosts
+  /* This recursive function dynamically creates the Hosts based on the application config */
   def populateHost(hostList: Seq[HostSimple], n : Integer, pesList: Seq[PeSimple], dcId:Integer) : Seq[HostSimple] = {
     logger.debug("Creating Hosts ...")
     if(n==0) return hostList
@@ -91,6 +103,7 @@ object Simulation1 :
         config.getLong(configReference + "dc" + dcId + ".host.BandwidthInMBps"),
         config.getLong(configReference + "dc" + dcId + ".host.StorageInMBs")
         ,pesList.asJava)
+      //Set the VM allocation policy
       if(config.getBoolean(configReference + "dc" + dcId + ".host.timeSharedPolicy")){
         newHostSimple.setVmScheduler(new VmSchedulerTimeShared)
       } else {
@@ -104,7 +117,7 @@ object Simulation1 :
       return populateHost(hostList :+ newHostSimple, n-1, pesList, dcId)
     }
 
-  //Recursive function to populate VMs
+  /* This recursive function dynamically creates the VMs based on the application config */
   def populateVms(vmList : Seq[Vm], n : Integer) : Seq[Vm] = {
     logger.debug("Creating VMs ...")
     if(n==0) return vmList
@@ -123,6 +136,7 @@ object Simulation1 :
       return populateVms(vmList :+ newVm, n-1)
   }
 
+  /* This recursive function dynamically creates the Cloudlets based on the application config */
   def populateCloudlets(cloudletsList : Seq[Cloudlet], n : Integer, utilizationModel : UtilizationModel) : Seq[Cloudlet] = {
     logger.debug("Creating Cloudlets ...")
     if(n==0) return cloudletsList
@@ -141,6 +155,21 @@ object Simulation1 :
       , n - 1,
       utilizationModel
     )
+  }
+  /* This function compute the cost for running each VM */
+  def computeTotalVmCost(vmList : Seq[Vm], n: Integer): Unit = {
+    if (n < 0) return vmList
+    else
+      //Check if the VM has been used
+      val vm = vmList(n)
+      if (vm.getTotalExecutionTime > 0){
+        val cost = VmCost(vmList(n))
+        val vmId = vm.getId
+        logger.info(s"The cost for running $vmId is the following...")
+        logger.info(s"$cost")
+        return computeTotalVmCost(vmList, n-1)
+      }
+      else { return computeTotalVmCost(vmList, n-1) }
   }
 
 
@@ -186,5 +215,8 @@ object Simulation1 :
     //Get the CloudLets finished list from the broker
     val finishedCloudlets = broker0.getCloudletFinishedList()
     CloudletsTableBuilder(finishedCloudlets).build()
+
+    //Compute the total cost for running each VM
+    computeTotalVmCost(vmList, vmNumber - 1)
 
 

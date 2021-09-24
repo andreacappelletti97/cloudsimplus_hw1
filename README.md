@@ -32,7 +32,12 @@ will reduce the individual execution time of a Cloudlet.
 
 
 
-The datacenter structure is the following
+Let's consider the following architecture
+
+![alt text](assets/simulation1.png)
+
+### Five stage pipeline
+![alt text](assets/pipeline.png)
 
 ## 2) Cost computation
 Let's suppose we are a broker, and we have to sell computing time 
@@ -128,6 +133,10 @@ Software as a Service
 When it comes to reducing latency we have to take into account the data locality,
 more specifically where is the distributed computation performed and how much time
 does it take to get the results in my current locality?
+
+Let's consider the following architecture
+
+![alt text](assets/data_locality.png)
 
 In order to simulate this scenario the classes Cloudlet and Broker have been
 extended. 
