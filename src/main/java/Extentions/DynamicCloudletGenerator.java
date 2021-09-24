@@ -5,6 +5,7 @@ import org.cloudbus.cloudsim.brokers.DatacenterBrokerSimple;
 import org.cloudbus.cloudsim.cloudlets.Cloudlet;
 import org.cloudbus.cloudsim.cloudlets.CloudletSimple;
 import org.cloudbus.cloudsim.datacenters.DatacenterSimple;
+import org.cloudbus.cloudsim.distributions.NormalDistr;
 import org.cloudbus.cloudsim.distributions.PoissonDistr;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModel;
 import org.cloudbus.cloudsim.utilizationmodels.UtilizationModelDynamic;
@@ -19,10 +20,11 @@ import java.util.List;
 
 public final class DynamicCloudletGenerator {
 
+
     public DynamicCloudletGenerator() {
     }
 
-    private static final ContinuousDistribution random  = new UniformDistr();
+    private static final ContinuousDistribution random = new UniformDistr() ;
 
     public static EventListener<EventInfo> createRandomCloudlets(List<Cloudlet> cloudletList, DatacenterBrokerSimple broker) {
         return new EventListener<EventInfo>() {
@@ -42,7 +44,7 @@ public final class DynamicCloudletGenerator {
 
     //this algorithm proposed by D. Knuth
     //https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
-
+/*
     private static int getPoissonRandom(double mean) {
         Random r = new Random();
         double L = Math.exp(-mean);
@@ -54,18 +56,19 @@ public final class DynamicCloudletGenerator {
         } while (p > L);
         return k - 1;
     }
+*/
+
 
     public static Cloudlet createCloudlet() {
-        UtilizationModel um = new UtilizationModelDynamic(0.2);
+        UtilizationModel utilizationModel = new UtilizationModelDynamic(0.2);
         CloudletSimple cloudletSimple =  new CloudletSimple(1000, 1);
                cloudletSimple.setFileSize(1024);
         cloudletSimple.setOutputSize(1024);
         cloudletSimple.setUtilizationModelCpu(new UtilizationModelFull());
-        cloudletSimple.setUtilizationModelRam(um);
-        cloudletSimple.setUtilizationModelBw(um);
-                cloudletSimple.setSubmissionDelay(getPoissonRandom(30));
-                return cloudletSimple;
-
+        cloudletSimple.setUtilizationModelRam(utilizationModel);
+        cloudletSimple.setUtilizationModelBw(utilizationModel);
+        cloudletSimple.setSubmissionDelay(1);
+        return cloudletSimple;
     }
 
 

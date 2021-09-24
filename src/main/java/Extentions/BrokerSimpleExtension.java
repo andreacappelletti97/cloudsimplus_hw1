@@ -96,9 +96,10 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
             }
         }
 
-        Datacenter datacenter = getDatacenterList().get(++lastSelectedDcIndex);
+        int  lastSelectedDcIndexReal = ++lastSelectedDcIndex;
+        Datacenter datacenter = getDatacenterList().get(lastSelectedDcIndexReal);
         if(datacenter instanceof DataCenterSimpleExtended) {
-            DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) getDatacenterList().get(++lastSelectedDcIndex);
+            DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) getDatacenterList().get(lastSelectedDcIndexReal);
         }
         return datacenter;
     }

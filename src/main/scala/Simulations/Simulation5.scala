@@ -192,7 +192,7 @@ object Simulation5 :
 
   def mapNetworkNodes(networkTopology: BriteNetworkTopology, dcList : Seq[Datacenter], n: Integer): Unit = {
     if(n == dcList.length - 1) return
-      networkTopology.mapNode(dcList(n), n);
+      networkTopology.mapNode(dcList(n), config.getInt(configReference + "dc" + n +".node"));
     return mapNetworkNodes(networkTopology, dcList, n + 1)
   }
 
@@ -229,58 +229,24 @@ object Simulation5 :
     val newVmList : Seq[Vm] = Seq.empty[Vm]
     val newCloudletsList : Seq[Cloudlet] = Seq.empty[Cloudlet]
 
-
     val dcList : Seq[Datacenter] = populateDataCenter(
       cloudsim,
       newDcList,
       0,
       dcNumber
     )
-    val host0 = dcList(0).getHost(0)
-    val pes0 = dcList(0).getHost(0).getPeList
-    logger.info(s"Getting host 0: $host0")
-    logger.info(s"Getting host 0: $pes0")
-
-
-    val host1 = dcList(1).getHost(0)
-    val pes1 = dcList(1).getHost(0).getPeList
-
-    logger.info(s"Getting host 0: $host1")
-    logger.info(s"Getting host 0: $pes1")
-
-
-    /*
-    //Recursively build the pesList
-    val pesList : Seq[PeSimple] = populatePes(newPesList, pesNumber)
-    logger.info(s"Created $pesNumber processing element: $pesList")
-
-    //Recursively build the hostList
-    val hostList: Seq[HostSimple] = populateHost (newHostList ,hostNumber, pesList)
-    logger.info(s"Created $hostNumber host: $hostList")
-
-
-    //Create datacenter
-    val dc0 = DatacenterSimple(cloudsim, hostList.asJava, new VmAllocationPolicySimple)
-      .setSchedulingInterval(config.getDouble(configReference + "dcSchedulingInterval"));
-    logger.info(s"Created a new datacenter: $dc0")
- */
-
 
     //Set network topology
     val networkTopology = configureNetwork()
     cloudsim.setNetworkTopology(networkTopology)
     logger.info("Network topoloty loaded...")
-    networkTopology.mapNode(dcList(0), 0);
-    networkTopology.mapNode(dcList(1), 2);
-    //Broker will correspond to BRITE node 3
-    networkTopology.mapNode(broker0, 3);
-
+    mapNetworkNodes(networkTopology, dcList, 0);
+    //Map broker based on the config file
+    networkTopology.mapNode(broker0, config.getInt(configReference + "brokerNode") );
 
     //Recursively build the vmList
     val vmList : Seq[Vm] = populateVms(newVmList, vmNumber)
     logger.info(s"Created $vmNumber virtual machine: $vmList")
-
-
 
     //UtilizationModel defining the Cloudlets use only 50% of any resource all the time
     val utilizationModel = new UtilizationModelDynamic(
@@ -302,15 +268,7 @@ object Simulation5 :
     val finishedCloudlets = broker0.getCloudletFinishedList()
     CloudletsTableBuilder(finishedCloudlets).build()
 
-//printHostPowerConsumption(hostList, hostNumber - 1)
-//printVmPowerConsumption(vmList, vmNumber - 1)
 
-/*
-// First time the list must be empty
-val newHostList : Seq[Host] = Seq.empty[Host]
-val hostList = getSimulationHostList(newHostList, vmList, 0)
-logger.info(s"Created a list of hosts simulation: $hostList")
-*/
-//printHostPowerConsumption(hostList , hostList.length - 1 )
+
 
 

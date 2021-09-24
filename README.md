@@ -9,10 +9,13 @@ acappe2@uic.edu
 
 
 ## 1) TimeShared vs SpaceShared policies
+```
+Simulation1
+```
 This very first basic simulation is run in order to understand the concepts
 of TimeShared and SpaceShared policies. 
 
-In general when we want to run some cloudlets we have to assign some kind of
+In general when we want to run some cloudlets we could assign some kind of
 priority for the computation. 
 
 Asking questions like 
@@ -22,23 +25,177 @@ that some Cloudlets end the computation before others ?
 
 Questions like this will lead our choices when it comes to standard
 policies, indeed if we choose to use a TimeShared policy we can
-notice that the overall execution time will be less with respect to the overall
+expect that the overall execution time will be less with respect to the overall
 execution time of the simulation running with a SpaceShared policy.
 
-On the other side of the medal, we can also notice that with a TimeShared policy
+On the other side of the medal, we can also think that with a TimeShared policy
 the individual Cloudlet takes longer to execute, meanwhile using a SpaceShared policy
 will reduce the individual execution time of a Cloudlet.
 
-
-
-Let's consider the following architecture
+In this simulation we take in consideration this architecture
 
 ![alt text](assets/simulation1.png)
+
+All the simulation configuration parameters can be found in the application.conf file under /resources.
+We are looking at simulation1 and specifically we have
+- Two datacenters: dc0 and dc1
+- 3 Host distributed among the two datacenters
+- 5 VMs per each Host
+- 30 Cloudlets
+
+Meanwhile, the SpaceShared policy is going to execute Cloudlets following a waiting queue (generally
+FIFO: first in first out), the TimeShared policy implements parallel execution among instructions.
+
+In order to understand how TimeShared works, we can take into account the classic risc pipeline.
+It is composed by five stages, which are IF, ID, EX, MEM, WB.
+
+If two Cloudlets end on the same VM, in a TimeShared policy, we have that the CPU try to run
+the different instructions in paralles at the Operating System level implementing the context switching.
+
+Let's suppose we have two Cloudlets on the same VM and 
+that instruction 1 of the 1st Cloudlet is in the MEM phase, in a classical SpaceShared approach the CPU
+will wait until the instruction completes all the stages.  
+Using a TimeShared policy, the CPU at the OS level can already start the ID phase 
+of instruction 2 (which owner is the 2nd Cloudlet) 
+and execute the two instruction with some kind of parallelism mechanism.
 
 ### Five stage pipeline
 ![alt text](assets/pipeline.png)
 
+In the end, this brings us to the conclusion that if we want speed up the overall execution time of our Cloudlets
+we should use a TimeShared policy, meanwhile if we want to speed up the single execution time of a Cloudlet we should
+prefer a SpaceShared policy.
+
+But, as we will see in this simulation, this conclusion really depends on the context.
+Indeed if we run the simulation with a TimeShared policy we obtain the following result
+```
+
+                                         SIMULATION RESULTS
+
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       0|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|       101|     100
+       5|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|       101|     100
+      10|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|       101|     100
+       1|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|       101|     100
+       6|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|       101|     100
+      11|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|       101|     100
+       4|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|       101|     100
+       9|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|       101|     100
+      14|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|       101|     100
+       2|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|       101|     100
+       7|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|       101|     100
+      12|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|       101|     100
+       3|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|       101|     100
+       8|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|       101|     100
+      13|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|       101|     100
+      15|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|       152|     151
+      20|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|       152|     151
+      25|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|       152|     151
+      16|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|       152|     151
+      21|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|       152|     151
+      26|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|       152|     151
+      19|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|       152|     151
+      24|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|       152|     151
+      29|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|       152|     151
+      17|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|       152|     151
+      22|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|       152|     151
+      27|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|       152|     151
+      18|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|       152|     151
+      23|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|       152|     151
+      28|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|       152|     151
+-----------------------------------------------------------------------------------------------------
+```
+
+We obtained an overall execution time of 152 seconds.
+As we can notice the first tasks execute in 101 seconds and the last ones in 152 seconds.
+
+Now if we run the same simulation with SpaceShared we can expect
+to obtain an overall time greater than 152 seconds but the single cloudlet execution time of the first
+in the queue more efficient than 101 seconds.
+
+```
+                                         SIMULATION RESULTS
+
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       0|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|        17|      17
+       1|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|        0|        17|      17
+       4|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|        0|        17|      17
+       2|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|        0|        17|      17
+       3|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|        0|        17|      17
+       5|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|       17|        34|      17
+       6|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|       17|        34|      17
+       9|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|       17|        34|      17
+       7|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|       17|        34|      17
+       8|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|       17|        34|      17
+      10|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|       34|        50|      17
+      11|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|       34|        50|      17
+      14|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|       34|        50|      17
+      12|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|       34|        50|      17
+      13|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|       34|        50|      17
+      15|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|       51|        67|      17
+      16|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|       51|        67|      17
+      19|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|       51|        67|      17
+      17|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|       51|        67|      17
+      18|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|       51|        67|      17
+      20|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|       68|        84|      17
+      21|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|       68|        84|      17
+      24|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|       68|        84|      17
+      22|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|       68|        84|      17
+      23|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|       68|        84|      17
+      25|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|       85|       101|      17
+      26|SUCCESS| 3|   0|        4| 1|        4|      20000|          4|       85|       101|      17
+      29|SUCCESS| 3|   0|        4| 4|        4|      20000|          4|       85|       101|      17
+      27|SUCCESS| 3|   1|        4| 2|        4|      20000|          4|       85|       101|      17
+      28|SUCCESS| 3|   1|        4| 3|        4|      20000|          4|       85|       101|      17
+-----------------------------------------------------------------------------------------------------
+```
+
+This is not the case, indeed we obtain a total execution time of 101 seconds , which outperforms
+the TimeShared policy execution time. The single Cloudlet execution time outperforms the TimeShared approach
+as well, indeed we have 17 seconds for the very first Cloudlets versus 101 seconds of the TimeShared policy.
+
+It's a matter of resources, indeed in the TimeShared policy there are not enough
+resources to execute the Cloudlets on the same VMs and the computation enter into a starvation mode.
+
+In this case the SpaceShared policy outperforms the TimeShared policy, especially in terms of cost.
+
 ## 2) Cost computation
+```
+Simulation2
+```
+This simulation adopts a dynamical algorithm to generate Cloudlets.
+In order to write the algorithm I created a Java class called DynamicCloudletGenerator 
+that can be found in /src/main/java/Extensions.  
+The reason I wrote this extra code in Java is that
+I did not find a proper way to add an EventListener on the clock tick in Scala starting from the Java
+org.cloudsim package listener of the Broker.
+
+This class implements two distribution:
+
+- Poisson's distribution to generate the arrival time of a Cloudlet
+- Gaussian distribution to define the Cloudlet parameters (PEs, length, size)
+
+
+
+The Poisson distribution is the ideal distribution to set the Cloudlets submission delay.
+In order to properly configure this distribution to generate random variables we have to choose the right mean.
+
+Let's consider this chart
+
+
+
+![alt text](assets/poisson.png)
+
+Source: https://en.wikipedia.org/wiki/Poisson_distribution
+
+After looking at the distribution I would say that a proper value for the mean is 0.6 in order to generate
+submissionDelays and not exceed the simulation time. Moreover, this mean allows also to not overlap.
+
+
 Let's suppose we are a broker, and we have to sell computing time 
 trying to minimize the cost in order to make more money. 
 
@@ -49,19 +206,20 @@ per MB.
 
 This simulation provides a cost estimation of running a large cloud provider.
 
-The following simulations aims to implement some policies to minimise this cost.
 
-This simulation adopts a dynamical algorithm to generate Cloudlets.
-In order to write the algorithm I extended a Java class that implements two distribution
 
-- Poisson distribution to generate the arrival time of a Cloudlet
-- Gaussian distribution to define the Cloudlet parameters (PEs, length, size)
 
 
 
 ## 3) Power consumption
+```
+Simulation3
+```
 In order to have a complete overview of the costs for running our cloud environment
-an important metric to consider is the power consumption.
+an important metric to consider is the power consumption, expecially when we are dealing 
+with IaaS (Infrastructure as a Service).
+
+Indeed, in a IaaS 
 
 ### Efficiency
 A very useful metrics when it comes to track performances is Efficiency.
@@ -134,9 +292,11 @@ In both cases you will pay 510$.
 But you decide how much a value of a second in your life is up to, you do it
 by setting that α.
 
-# SaaS
-Software as a Service
+
 ## 4) Data locality
+```
+Simulation4
+```
 When it comes to reducing latency we have to take into account the data locality,
 more specifically where is the distributed computation performed and how much time
 does it take to get the results in my current locality?
@@ -146,7 +306,7 @@ Let's consider the following architecture
 ![alt text](assets/data_locality.png)
 
 In order to simulate this scenario the classes Cloudlet and Broker have been
-extended. 
+extended and they can be found into the /src/main/java/Extensions directory.
 
 In the Cloudlet class I have added a field that set the locality
 in which the Cloudlet will be executed. 
@@ -168,17 +328,112 @@ and assign to my Cloudlets a datacenter in Japan.
 I will experience a very high latency, moreover the costs for the broker will be
 very high because of the inefficient total execution time.
 
-## 5) Dynamically allocation
 
 
 
-## 6) Network topology
+
+
+
+## 5) Network topology
+```
+Simulation5
+```
+
+In this simulation I'm going to define my own network topology using Brite (Boston University Representative Internet Topology Generator).
+The tool is available online on Github
 
 ![alt text](assets/brite.png)
 
 Source: https://github.com/nsol-nmsu/brite-patch
 
-## 7) Contribution
+The topology of the network is myNetwork.brite and can be found into the /src/resources directory.
+
+First, we have to define the nodes of our network.
+For this example I will consider 8 nodes.
+For each node we have to specify the 
+
+```Id, the X position, the Y position, the indegree and outdegree and finally the ASid type.
+NodeId xpos ypos indegree outgdegree ASid type.
+```
+The result is this one
+``` 
+Nodes: ( 8 )
+0	1	3	3	3	-1	RT_NODE
+1	0	3	3	3	-1	RT_NODE
+2	0	0	3	3	-1	RT_NODE
+3	0	4	3	3	-1	RT_NODE
+4	1	0	4	4	-1	RT_NODE
+5	6	3	4	4	-1	RT_NODE
+6	3	3	4	4	-1	RT_NODE
+7	3	0	4	4	-1	RT_NODE
+```
+For each node we have to define the edges using the following format
+
+![alt text](assets/edges.jpg)
+
+Source: http://www.cs.columbia.edu/~abk2001/SIMPSON.html
+
+My definition of edges is the following
+``` 
+Edges: ( 10 )
+0	1	2	3.0			1.2	100.0	-1	-1	E_RT	U
+1	2	4	1.0			0.7	100.0	-1	-1	E_RT	U
+2	3	0	1.41421356237 3.9	100.0	-1	-1	E_RT	U
+3	0	4	3.0        	4.1	100.0	-1	-1	E_RT	U
+4	4	6	4.24264068712 9.7	100.0	-1	-1	E_RT	U
+5	6	0	2.0			8.2	100.0	-1	-1	E_RT	U
+6	5	3	6.0827625303 21.1	100.0	-1	-1	E_RT	U
+7	7	6	3.0			5.0	100.0	-1	-1	E_RT	U
+8   6	5	3.0			10.7	100.0	-1	-1	E_RT	U
+9   5	7	4.24264068712 13.9	100.0	-1	-1	E_RT	U
+```
+
+The final result looks like
+
+![alt text](assets/network.png)
+
+If we start a simulation and run the broker and the datacenter on the same node we obtain a not relevant
+latency (very near to the 0).
+
+``` 
+                                         SIMULATION RESULTS
+
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       0|SUCCESS| 2|   0|        1| 0|        1|      40000|          1|        0|       320|     320
+       1|SUCCESS| 2|   0|        1| 1|        1|      40000|          1|        0|       320|     320
+       2|SUCCESS| 2|   0|        1| 0|        1|      40000|          1|        0|       480|     480
+       3|SUCCESS| 2|   0|        1| 1|        1|      40000|          1|        0|       480|     480
+-----------------------------------------------------------------------------------------------------
+16:58:12.084 [main] INFO  java.lang.Class - Finished cloud simulation...
+```
+
+Now let's suppose we have a broker at node 5 and a datacenter at node 0, if we run the same Cloudlets
+we are going to experience a delay in terms of latency.
+The latency is given by the network topology and architecture.
+
+``` 
+================== Simulation finished at time 556.92 ==================
+
+
+
+                                         SIMULATION RESULTS
+
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       0|SUCCESS| 2|   0|        1| 0|        1|      40000|          1|       57|       376|     319
+       1|SUCCESS| 2|   0|        1| 1|        1|      40000|          1|       57|       376|     319
+       2|SUCCESS| 2|   0|        1| 0|        1|      40000|          1|       57|       536|     479
+       3|SUCCESS| 2|   0|        1| 1|        1|      40000|          1|       57|       536|     479
+-----------------------------------------------------------------------------------------------------
+```
+
+As we can notice in this simulation the startTime of each Cloudlets is delayed by 57 seconds.
+
+
+## 6) Contribution
 While I was getting familiar with the CloudSimPlus framework, running the examples provided by the official repo,
 I noticed that there was a bug in the example   
 

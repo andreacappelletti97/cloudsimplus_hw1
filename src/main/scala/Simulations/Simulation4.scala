@@ -38,8 +38,6 @@ import Extentions.DataCenterSimpleExtended
 class Simulation4
 
 object Simulation4:
-
-
   //Init the config file to get static params
   val config = ObtainConfigReference("simulation4") match {
     case Some(value) => value
@@ -156,9 +154,7 @@ object Simulation4:
       utilizationModel, locality
     )
   }
-
-
-
+  
   /* Create BrokerSimpleExtension to support the Data Locality simulation */
   def createBroker(cloudsim : CloudSim) : BrokerSimpleExtension = {
     val broker = new BrokerSimpleExtension(cloudsim)
@@ -208,7 +204,7 @@ object Simulation4:
     logger.info(s"Created a list of cloudlets from Italy: $cloudletsListItaly")
     //Recursively build the cloudletsList from Japan
     val cloudletsListJapan: Seq[Cloudlet] = populateCloudlets(newCloudletsListJapan, cloudletsNumberJapan, utilizationModel, 3)
-    logger.info(s"Created a list of cloudlets from Italy: $cloudletsListItaly")
+    logger.info(s"Created a list of cloudlets from Japan: $cloudletsListItaly")
 
     val cloudletsList = cloudletsListJapan ++ cloudletsListItaly ++ cloudletListUsa
     broker0.submitVmList(vmList.asJava)
