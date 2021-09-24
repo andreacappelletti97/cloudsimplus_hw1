@@ -40,6 +40,20 @@ public final class DynamicCloudletGenerator {
         };
     }
 
+    //this algorithm proposed by D. Knuth
+    //https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
+
+    private static int getPoissonRandom(double mean) {
+        Random r = new Random();
+        double L = Math.exp(-mean);
+        int k = 0;
+        double p = 1.0;
+        do {
+            p = p * r.nextDouble();
+            k++;
+        } while (p > L);
+        return k - 1;
+    }
 
     public static Cloudlet createCloudlet() {
         UtilizationModel um = new UtilizationModelDynamic(0.2);
@@ -49,7 +63,7 @@ public final class DynamicCloudletGenerator {
         cloudletSimple.setUtilizationModelCpu(new UtilizationModelFull());
         cloudletSimple.setUtilizationModelRam(um);
         cloudletSimple.setUtilizationModelBw(um);
-                cloudletSimple.setSubmissionDelay(1.0);
+                cloudletSimple.setSubmissionDelay(getPoissonRandom(30));
                 return cloudletSimple;
 
     }

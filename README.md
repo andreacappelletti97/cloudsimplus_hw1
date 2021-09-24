@@ -7,8 +7,7 @@ Andrea Cappelletti
 UIN: 674197701   
 acappe2@uic.edu  
 
-# IaaS 
-Infrastructure as a Service
+
 ## 1) TimeShared vs SpaceShared policies
 This very first basic simulation is run in order to understand the concepts
 of TimeShared and SpaceShared policies. 
@@ -51,6 +50,13 @@ per MB.
 This simulation provides a cost estimation of running a large cloud provider.
 
 The following simulations aims to implement some policies to minimise this cost.
+
+This simulation adopts a dynamical algorithm to generate Cloudlets.
+In order to write the algorithm I extended a Java class that implements two distribution
+
+- Poisson distribution to generate the arrival time of a Cloudlet
+- Gaussian distribution to define the Cloudlet parameters (PEs, length, size)
+
 
 
 ## 3) Power consumption
@@ -168,6 +174,9 @@ very high because of the inefficient total execution time.
 
 ## 6) Network topology
 
+![alt text](assets/brite.png)
+
+Source: https://github.com/nsol-nmsu/brite-patch
 
 ## 7) Contribution
 While I was getting familiar with the CloudSimPlus framework, running the examples provided by the official repo,

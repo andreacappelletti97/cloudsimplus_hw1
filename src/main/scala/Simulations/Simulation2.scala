@@ -35,19 +35,19 @@ import Extentions.DynamicCloudletGenerator
 
 import scala.collection.mutable
 
-/* Policies evaluation */
+/* Dinamically evaluation */
 class Simulation2
 
 object Simulation2 :
   //Init the config file to get static params
-  val config = ObtainConfigReference("simulation12") match {
+  val config = ObtainConfigReference("simulation2") match {
     case Some(value) => value
     case None => throw new RuntimeException("Cannot obtain a reference to the config data.")
   }
   //Init the logger
   val logger = CreateLogger(classOf[BasicCloudSimPlusExample])
   //Define the base config reference in the Json config file
-  val configReference = "simulation12."
+  val configReference = "simulation2."
 
   /* This recursive function dynamically creates the datacenter based on the application config */
   def populateDataCenter(cloudsim: CloudSim, dcList : Seq[Datacenter], n : Integer, dcNumber : Integer) : Seq[Datacenter] = {

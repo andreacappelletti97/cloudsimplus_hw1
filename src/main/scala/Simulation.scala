@@ -1,6 +1,6 @@
 
 import HelperUtils.{CreateLogger, ObtainConfigReference}
-import Simulations.{Simulation4, Simulation1, Simulation3, Simulation2}
+import Simulations.{Simulation3, Simulation1, Simulation4, Simulation2}
 import Examples.BasicFirstExample
 import com.typesafe.config.ConfigFactory
 import org.slf4j.LoggerFactory
