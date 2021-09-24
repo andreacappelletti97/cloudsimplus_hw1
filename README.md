@@ -79,7 +79,8 @@ running several CPUs at 20% will result in 95% effective power and 5% power diss
 This comes down to efficiency.
 
 
-![alt text](assets/cpu_utilization.png)
+![alt text](assets/cpu_utilization.png)  
+
 Source: https://www.researchgate.net/figure/CPU-utilization-vs-power-draw_fig3_267394699
 
 As we can notice from the chart above, the CPU power consumption will increase
