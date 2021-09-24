@@ -12,7 +12,7 @@ import java.util.List;
 
 public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
 
-        final boolean APPLY_LOCALITY_POLICY = false;
+        final boolean APPLY_LOCALITY_POLICY = true;
     /**
      * Index of the last VM selected from the {@link #getVmExecList()}
      * to run some Cloudlet.
@@ -47,8 +47,6 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
 
     @Override
     public DatacenterBroker submitCloudletList(List<? extends Cloudlet> list) {
-
-
         return super.submitCloudletList(list);
     }
 
@@ -69,10 +67,6 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
      * @see DatacenterBroker#setDatacenterMapper(java.util.function.BiFunction)
      * @see #setSelectClosestDatacenter(boolean)
      */
-
-
-
-
 
     @Override
     protected Datacenter defaultDatacenterMapper(final Datacenter lastDatacenter, final Vm vm) {
@@ -104,20 +98,17 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
         return datacenter;
     }
 
-    /**
-     * {@inheritDoc}
-     *
-     * <p><b>It applies a Round-Robin policy to cyclically select
-     * the next Vm from the {@link #getVmWaitingList() list of waiting VMs}.</p>
-     *
-     * @param cloudlet {@inheritDoc}
-     * @return {@inheritDoc}
-     */
 
     private Vm selectVmLocality(List<Vm> vmList, Cloudlet cloudlet) {
         if (cloudlet instanceof CloudletExtension) {
             CloudletExtension cloudletExtension = (CloudletExtension) cloudlet;
             for (Vm vmWrapper : vmList) {
+                System.out.println(" VM list size is " + vmList.size());
+                DataCenterSimpleExtended dataCenterSimpleExtendedddd = (DataCenterSimpleExtended) vmWrapper.getHost().getDatacenter();
+                System.out.println("MY DC is: " + vmWrapper.getHost().getDatacenter().getId());
+                System.out.println("MY DC locality is: " + dataCenterSimpleExtendedddd.getLocality());
+                System.out.println("MY Host is: " + vmWrapper.getHost().getId());
+                System.out.println("MY id is: " + vmWrapper.getId());
                 Datacenter datacenter = vmWrapper.getHost().getDatacenter();
                 if (datacenter instanceof DataCenterSimpleExtended) {
                     DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenter;
@@ -145,14 +136,12 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
             return Vm.NULL;
         }
 
-        /*If the cloudlet isn't bound to a specific VM or the bound VM was not created,
-        cyclically selects the next VM on the list of created VMs.*/
+
         lastSelectedVmIndex = ++lastSelectedVmIndex % getVmExecList().size();
         Vm vm = null;
         if(APPLY_LOCALITY_POLICY) {
              vm = selectVmLocality(getVmCreatedList(), cloudlet);
             if (vm == null) {
-
                 vm = getVmFromCreatedList(lastSelectedVmIndex);
             }
         } else {
@@ -163,13 +152,17 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
             VmSimple vmSimple = (VmSimple) vm;
         }
 
+        /* Add a penality in seconds if the cloudlet is not executed in the same locality */
         if(cloudlet instanceof CloudletExtension){
             CloudletExtension cloudletExtension = (CloudletExtension) cloudlet;
             Datacenter datacenter = vm.getHost().getDatacenter();
             if(datacenter instanceof DataCenterSimpleExtended){
                 DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenter;
                 if(( dataCenterSimpleExtended.getLocality() != cloudletExtension.getLocality())){
-                    cloudletExtension.setSubmissionDelay(1200);
+                    System.out.println("NOT THE SAME locality ");
+                    System.out.println(dataCenterSimpleExtended.getLocality());
+                    System.out.println(cloudletExtension.getLocality());
+                    cloudletExtension.setSubmissionDelay(120);
                 }
             }
         }

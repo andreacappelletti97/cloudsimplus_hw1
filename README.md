@@ -316,9 +316,9 @@ and is able to assign the task to each datacenter in order to reduce the latency
 as a consequence the overall computation time and cost.
 
 To write this simulation three different locality have been considered
-- United States
-- Italy
-- Japan
+- United States (location 1)
+- Italy (location 2)
+- Japan (location 3)
 
 Let's supposed I'm in the United States and I'm making an API call to retrieve
 some data after this data has been processed. 
@@ -328,8 +328,40 @@ and assign to my Cloudlets a datacenter in Japan.
 I will experience a very high latency, moreover the costs for the broker will be
 very high because of the inefficient total execution time.
 
+This is the result obtained from the simulation without the broker allocation policy based on the datacenter
+locality.
 
+``` 
+                                         SIMULATION RESULTS
 
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       2|SUCCESS| 3|   0|        4| 2|        4|      20000|          4|        0|        17|      16
+       3|SUCCESS| 3|   0|        4| 3|        4|      20000|          4|        0|        17|      16
+       0|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|      120|       137|      17
+       1|SUCCESS| 2|   0|        4| 1|        4|      20000|          4|      120|       137|      17
+       4|SUCCESS| 4|   0|        4| 4|        4|      20000|          4|      120|       137|      17
+       5|SUCCESS| 4|   0|        4| 5|        4|      20000|          4|      120|       137|      17
+-----------------------------------------------------------------------------------------------------
+```
+This is the result of the simulation obtained with the broker policy of allocation that takes into
+account the locality of the datacenter and the Cloudlet origin.
+
+``` 
+                                         SIMULATION RESULTS
+
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       4|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|        33|      33
+       5|SUCCESS| 2|   0|        4| 0|        4|      20000|          4|        0|        33|      33
+       2|SUCCESS| 3|   0|        4| 2|        4|      20000|          4|        0|        33|      33
+       3|SUCCESS| 3|   0|        4| 2|        4|      20000|          4|        0|        33|      33
+       0|SUCCESS| 4|   0|        4| 4|        4|      20000|          4|        0|        33|      33
+       1|SUCCESS| 4|   0|        4| 4|        4|      20000|          4|        0|        33|      33
+-----------------------------------------------------------------------------------------------------
+```
 
 
 
