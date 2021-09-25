@@ -8,7 +8,7 @@ class BasicCloudSimPlusExampleTestSuite extends AnyFlatSpec with Matchers {
   behavior of "configuration parameters module"
 
   it should "obtain the utilization ratio" in {
-    config.getDouble("simulation1.utilizationRatio") shouldBe 1E0
+    config.getDouble("simulation1.utilizationRatio") shouldBe 0.3E0
   }
 
   it should "obtain the MIPS capacity" in {

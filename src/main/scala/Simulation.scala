@@ -11,9 +11,9 @@ object Simulation:
 
   @main def runSimulation =
     logger.info("Constructing a cloud model...")
-    //Simulation1.Start();
+    Simulation1.Start();
     //Simulation2.Start();
-    Simulation3.Start();
+    //Simulation3.Start();
     //Simulation4.Start();
     //Simulation5.Start();
     logger.info("Finished cloud simulation...")
