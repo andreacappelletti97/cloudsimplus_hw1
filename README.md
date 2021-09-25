@@ -256,7 +256,7 @@ reduce the latency time.
 Simulation3
 ```
 In order to have a complete overview of the costs for running our cloud environment
-an important metric to consider is the power consumption, expecially when we are dealing 
+an important metric to consider is the power consumption, especially when we are dealing 
 with IaaS (Infrastructure as a Service).
 
 Indeed, in a IaaS 
@@ -271,7 +271,30 @@ Where the output can be seen as the total time taken in order to complete all
 the Cloudlets assigned to our cloud environment.
 
 
-### Possible Research Topic
+
+```
+Efficiency = Power consumption / Total execution time
+```
+# of VMs | CPU % | Power consumption [W] | Execution time [s] | Efficiency 
+--- | --- | --- | --- |--- |
+1 | 100 | 4950 | 100 | 49.50 
+2 | 50 | 3100 | 40 | 77.50
+3 | 33 | 4400 | 60 | 73.33
+4 | 25 | 5750 | 40 | 143.75
+5 | 20 | 7120 | 50 | 142.4
+
+```
+Efficiency = Execution time / Total cost
+```
+# of VMs | CPU % | Power consumption [W] | Execution time [s] | Efficiency
+--- | --- | --- | --- |--- |
+1 | 100 | 4950 | 100 | 0.25
+2 | 50 | 3100 | 40 | 0.125
+3 | 33 | 4400 | 60 | 0.122
+4 | 25 | 5750 | 40 | 0.06
+
+
+### Observations
 An interesting idea would be considering the CPU usage and its power consumption and 
 heat dissipation.
 
