@@ -259,8 +259,6 @@ In order to have a complete overview of the costs for running our cloud environm
 an important metric to consider is the power consumption, especially when we are dealing 
 with IaaS (Infrastructure as a Service).
 
-Indeed, in a IaaS 
-
 ### Efficiency
 A very useful metrics when it comes to track performances is Efficiency.
 In our specific case, Efficiency can be defined as
@@ -270,8 +268,24 @@ Efficiency = Power consumption / Output
 Where the output can be seen as the total time taken in order to complete all
 the Cloudlets assigned to our cloud environment.
 
+If we look at our business model we have that we pay for
 
+- CPU usage per second
+- Power consumption per second
 
+That depends on Total Execution Time
+
+- RAM allocated per MB
+- Bw allocated per MB
+- Storage allocated per MB
+
+That depends on the number of space allocated
+
+We can look into efficiency and try to take in consideration the number of allocated VMs and the CPU % usage
+in order to find a good compromise to minimise the overall cost.
+
+A way for doing so is to run an experiment and consider the denominator of the efficiency the 
+total execution time.
 ```
 Efficiency = Power consumption / Total execution time
 ```
@@ -283,6 +297,15 @@ Efficiency = Power consumption / Total execution time
 4 | 25 | 5750 | 40 | 143.75
 5 | 20 | 7120 | 50 | 142.4
 
+Looking into efficiency in this way, we obtain that the system is more efficient when
+we run 4 different VMs on a 25 % CPU utilization. This strongly depends on the number of
+resources we have and on the number on Cloudlets. 
+
+Also, allocation policies play a huge role in
+making this kind of reasoning.
+
+Another way is to look at efficiency as
+
 ```
 Efficiency = Execution time / Total cost
 ```
@@ -292,6 +315,12 @@ Efficiency = Execution time / Total cost
 2 | 50 | 3100 | 40 | 0.125
 3 | 33 | 4400 | 60 | 0.122
 4 | 25 | 5750 | 40 | 0.06
+
+Following this metric results we obtain that in this scenario it is more efficient in terms of
+execution time and total cost running 1 VM at 100% CPU utilization.
+
+But again, several other important factors we have to take in consideration before making the most
+suitable choice for our Cloud provider and minimise the risk of overprovisioning and underprovisioning resources.
 
 
 ### Observations
@@ -418,7 +447,7 @@ Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTim
 
 As we can see, for each Cloudlets that have been allocated into a different locality from the request origin,
 there is a penalty in terms of latency to pay.
-Indeed, the StartTime takes 120seconds (this penalty includes both forwarding and returning latency and
+Indeed, the StartTime takes 120 seconds (this penalty includes both forwarding and returning latency and
 it is set as a submissionDelay just for implementation convenience).
 
 To this penalty we have to sum the execution time of the Cloudlet.
@@ -447,7 +476,11 @@ allocated into the right location of the datacenter.
 This allows us to minimise the response time, which could be very useful when it comes to SaaS as an
 API calls requests.
 
+Indeed, if we think about the Software as a Service structure, the customers run mainly web services on our
+cloud computing system and they can benefit from this policy implementation.
 
+![alt text](assets/saas.png)
+Source: Dr. Mark Grechanik, Lecture 3 Slides
 
 ## 5) Network topology
 ```
