@@ -289,13 +289,13 @@ total execution time.
 ```
 Efficiency = Power consumption / Total execution time
 ```
-# of VMs | CPU % | Power consumption [W] | Execution time [s] | Efficiency 
---- | --- | --- | --- |--- |
-1 | 100 | 4950 | 100 | 49.50 
-2 | 50 | 3100 | 40 | 77.50
-3 | 33 | 4400 | 60 | 73.33
-4 | 25 | 5750 | 40 | 143.75
-5 | 20 | 7120 | 50 | 142.4
+| # of VMs  | CPU %  | Power consumption [W] | Execution time [s]  | Efficiency
+| ------------- | ------------- |  ------------- |  ------------- |  ------------- |
+| 1 | 100 | 4950 | 100 | 49.50 
+| 2 | 50 | 3100 | 40 | 77.50
+| 3 | 33 | 4400 | 60 | 73.33
+| 4 | 25 | 5750 | 40 | 143.75
+| 5 | 20 | 7120 | 50 | 142.4
 
 Looking into efficiency in this way, we obtain that the system is more efficient when
 we run 4 different VMs on a 25 % CPU utilization. This strongly depends on the number of
@@ -309,12 +309,12 @@ Another way is to look at efficiency as
 ```
 Efficiency = Execution time / Total cost
 ```
-# of VMs | CPU % | Power consumption [W] | Execution time [s] | Efficiency
---- | --- | --- | --- |--- |
-1 | 100 | 4950 | 100 | 0.25
-2 | 50 | 3100 | 40 | 0.125
-3 | 33 | 4400 | 60 | 0.122
-4 | 25 | 5750 | 40 | 0.06
+| # of VMs  | CPU %  | Power consumption [W] | Execution time [s]  | Efficiency
+| ------------- | ------------- |  ------------- |  ------------- |  ------------- |
+| 1 | 100 | 4950 | 100 | 0.25
+| 2 | 50 | 3100 | 40 | 0.125
+| 3 | 33 | 4400 | 60 | 0.122
+| 4 | 25 | 5750 | 40 | 0.06
 
 Following this metric results we obtain that in this scenario it is more efficient in terms of
 execution time and total cost running 1 VM at 100% CPU utilization.
