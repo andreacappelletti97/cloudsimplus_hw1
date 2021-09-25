@@ -17,6 +17,7 @@ import org.cloudbus.cloudsim.distributions.UniformDistr;
 import org.cloudbus.cloudsim.distributions.ContinuousDistribution;
 
 import java.util.List;
+import java.util.Random;
 
 public final class DynamicCloudletGenerator {
 
@@ -24,13 +25,19 @@ public final class DynamicCloudletGenerator {
     public DynamicCloudletGenerator() {
     }
 
-    private static final ContinuousDistribution random = new UniformDistr() ;
+    private static final Random random = new Random() ;
+    private static final ContinuousDistribution continuosDistribution = new UniformDistr() ;
+    private static final double poissonDistributionMean = 0.6;
+    private static final int cloudletMips = 1000;
+    private static final int cloudletSize = 612;
+    private static final int cloudletPes = 4;
+    private static final double utilizationRatio = 0.2;
 
     public static EventListener<EventInfo> createRandomCloudlets(List<Cloudlet> cloudletList, DatacenterBrokerSimple broker) {
         return new EventListener<EventInfo>() {
             @Override
             public void update(EventInfo info) {
-                if(random.sample() <= 0.3) {
+                if(continuosDistribution.sample() <= 0.3) {
                     //Dinamically generate new Cloudlets
                     System.out.println("Event Listener called...");
                     System.out.println("I'm going to dinamically generates cloudlets for the entire duration of the simulation.");
@@ -44,7 +51,7 @@ public final class DynamicCloudletGenerator {
 
     //this algorithm proposed by D. Knuth
     //https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
-/*
+    //Compute the delay arrival with a Poisson distribution
     private static int getPoissonRandom(double mean) {
         Random r = new Random();
         double L = Math.exp(-mean);
@@ -56,18 +63,28 @@ public final class DynamicCloudletGenerator {
         } while (p > L);
         return k - 1;
     }
-*/
 
+    /* Gaussian distribution to select the Cloudlet params */
+    private static int getGaussianRandom(int mean, int std) {
+        return  (int)   random.nextGaussian() * std + mean;
+    }
+
+    private static int getIntervalSplit(int interval){
+        return  (int) interval/2;
+    }
+    private static int getStdOctave(int std){
+        return  (int)  std/8;
+    }
 
     public static Cloudlet createCloudlet() {
-        UtilizationModel utilizationModel = new UtilizationModelDynamic(0.2);
-        CloudletSimple cloudletSimple =  new CloudletSimple(1000, 1);
-               cloudletSimple.setFileSize(1024);
-        cloudletSimple.setOutputSize(1024);
-        cloudletSimple.setUtilizationModelCpu(new UtilizationModelFull());
+        UtilizationModel utilizationModel = new UtilizationModelDynamic(utilizationRatio);
+        CloudletSimple cloudletSimple =  new CloudletSimple(getGaussianRandom(getIntervalSplit(cloudletMips), getStdOctave(cloudletMips)), getGaussianRandom(getIntervalSplit(cloudletPes), getStdOctave(cloudletPes)));
+               cloudletSimple.setFileSize(getGaussianRandom(getIntervalSplit(cloudletSize), getStdOctave(cloudletSize)));
+        cloudletSimple.setOutputSize(getGaussianRandom(getIntervalSplit(cloudletSize), getStdOctave(cloudletSize)));
+        cloudletSimple.setUtilizationModelCpu(utilizationModel);
         cloudletSimple.setUtilizationModelRam(utilizationModel);
         cloudletSimple.setUtilizationModelBw(utilizationModel);
-        cloudletSimple.setSubmissionDelay(1);
+        cloudletSimple.setSubmissionDelay(getPoissonRandom(poissonDistributionMean));
         return cloudletSimple;
     }
 

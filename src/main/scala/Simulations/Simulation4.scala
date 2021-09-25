@@ -135,23 +135,23 @@ object Simulation4:
 
 
   /* Create CloudletExtended elements to support the Data Locality simulation */
-  def populateCloudlets(cloudletsList: Seq[Cloudlet], n: Integer, utilizationModel: UtilizationModel, locality: Integer): Seq[Cloudlet] = {
+  def populateCloudlets(cloudletsList: Seq[Cloudlet], n: Integer, utilizationModel: UtilizationModel): Seq[Cloudlet] = {
     logger.debug("Creating Cloudlets ...")
-    if (n == 0) return cloudletsList
+    if (n < 0) return cloudletsList
     else return populateCloudlets(
       cloudletsList :+ CloudletExtension(
-          config.getLong(configReference + "cloudlet.length"),
-          config.getInt(configReference + "cloudlet.pesNumber"),
-          locality)
+          config.getLong(configReference +  "cloudlet"+ n + ".length"),
+          config.getInt(configReference + "cloudlet" + n + ".pesNumber"),
+           config.getInt(configReference + "cloudlet" + n + ".locality"))
           //Set input and output sizes
-          .setFileSize(config.getLong(configReference + "cloudlet.inputSize"))
-          .setOutputSize(config.getLong(configReference + "cloudlet.outputSize"))
+          .setFileSize(config.getLong(configReference + "cloudlet" + n + ".inputSize"))
+          .setOutputSize(config.getLong(configReference + "cloudlet" + n + ".outputSize"))
           //Set utilization models
           .setUtilizationModelCpu(utilizationModel)
           .setUtilizationModelRam(utilizationModel)
           .setUtilizationModelBw(utilizationModel)
       , n - 1,
-      utilizationModel, locality
+      utilizationModel
     )
   }
   
@@ -170,9 +170,8 @@ object Simulation4:
     //Init the data from the config
     val dcNumber: Integer = config.getInt(configReference + "dcNumber")
     val vmNumber: Integer = config.getInt(configReference + "vm.number")
-    val cloudletsNumberUsa: Integer = config.getInt(configReference + "cloudlet.number")
-    val cloudletsNumberItaly: Integer = config.getInt(configReference + "cloudlet.number")
-    val cloudletsNumberJapan: Integer = config.getInt(configReference + "cloudlet.number")
+    val cloudletsNumber: Integer = config.getInt(configReference + "totalCloudletNumber")
+
 
     // First time the list must be empty
     val newDcList: Seq[Datacenter] = Seq.empty[Datacenter]
@@ -197,16 +196,10 @@ object Simulation4:
     config.getDouble(configReference + "utilizationRatio"));
 
     //Recursively build the cloudletsList USA
-    val cloudletListUsa : Seq[Cloudlet] = populateCloudlets(newCloudletsListUsa, cloudletsNumberUsa, utilizationModel, 1)
-    logger.info(s"Created a list of cloudlets from USA: $cloudletListUsa")
-    //Recursively build the cloudletsList from Italy
-    val cloudletsListItaly: Seq[Cloudlet] = populateCloudlets(newCloudletsListItaly, cloudletsNumberItaly, utilizationModel, 2)
-    logger.info(s"Created a list of cloudlets from Italy: $cloudletsListItaly")
-    //Recursively build the cloudletsList from Japan
-    val cloudletsListJapan: Seq[Cloudlet] = populateCloudlets(newCloudletsListJapan, cloudletsNumberJapan, utilizationModel, 3)
-    logger.info(s"Created a list of cloudlets from Japan: $cloudletsListItaly")
+    val cloudletsList : Seq[Cloudlet] = populateCloudlets(newCloudletsListUsa, cloudletsNumber, utilizationModel)
+    logger.info(s"Created a list of cloudlets from USA: $cloudletsList")
 
-    val cloudletsList = cloudletsListJapan ++ cloudletsListItaly ++ cloudletListUsa
+
     broker0.submitVmList(vmList.asJava)
     broker0.submitCloudletList(cloudletsList.asJava)
 

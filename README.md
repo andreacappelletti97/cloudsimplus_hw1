@@ -168,18 +168,29 @@ In this case the SpaceShared policy outperforms the TimeShared policy, especiall
 Simulation2
 ```
 This simulation adopts a dynamical algorithm to generate Cloudlets.
+
+To run the simulation we have first to set a simulation time from the application.conf file
+``` 
+simulationTime = 100 #in seconds
+```
+
 In order to write the algorithm I created a Java class called DynamicCloudletGenerator 
 that can be found in /src/main/java/Extensions.  
-The reason I wrote this extra code in Java is that
-I did not find a proper way to add an EventListener on the clock tick in Scala starting from the Java
-org.cloudsim package listener of the Broker.
+The reason behind that class is that I did not find a suitable way to handle Event Listeners from Scala
+to Java and viceversa. 
+
+Indeed, converting parameters from the broker will result in
+```
+Java does not distinguish between mutable and immutable collections in their type,
+a conversion from, say, scala.immutable.List will yield a java.util.List,
+where all mutation operations throw an “UnsupportedOperationException”.
+```
+Source: https://docs.scala-lang.org/overviews/collections/conversions-between-java-and-scala-collections.html
 
 This class implements two distribution:
 
 - Poisson's distribution to generate the arrival time of a Cloudlet
 - Gaussian distribution to define the Cloudlet parameters (PEs, length, size)
-
-
 
 The Poisson distribution is the ideal distribution to set the Cloudlets submission delay.
 In order to properly configure this distribution to generate random variables we have to choose the right mean.
@@ -193,8 +204,18 @@ Let's consider this chart
 Source: https://en.wikipedia.org/wiki/Poisson_distribution
 
 After looking at the distribution I would say that a proper value for the mean is 0.6 in order to generate
-submissionDelays and not exceed the simulation time. Moreover, this mean allows also to not overlap.
+submissionDelays and not exceed the simulation time. 
 
+Moreover, this mean allows also to not overlap in time:
+it could not happend that a Cloudlet that has been generated at t1 is executed before than a Cloudlet generated
+at t0 where t1>t0.
+
+The gaussian random variable is generated following the distribution and taking as a mean
+half of the maximum parameter value (suppose we want to generate Cloudlets with 1000 Mips, the mean would be 500)
+and as a standard deviation 1/8 of the maximum parameter value.
+
+This grant that the interval in which we generate the random gaussian variable is fixed and we do not
+exceed the maximum value we want to have.
 
 Let's suppose we are a broker, and we have to sell computing time 
 trying to minimize the cost in order to make more money. 
@@ -205,11 +226,30 @@ the cost of the Bandwidth allocated per MB and finally the cost of the Storage
 per MB.   
 
 This simulation provides a cost estimation of running a large cloud provider.
+```
+                                        SIMULATION RESULTS
 
+Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTime|FinishTime|ExecTime
+      ID|       |ID|  ID|CPU cores|ID|CPU cores|         MI|  CPU cores|  Seconds|   Seconds| Seconds
+-----------------------------------------------------------------------------------------------------
+       0|SUCCESS| 2|   0|        1| 0|        1|        500|          1|        0|         7|       7
+       1|SUCCESS| 2|   1|        1| 1|        1|        500|          1|        0|         7|       7
+       2|SUCCESS| 2|   1|        1| 2|        1|        500|          1|        0|         7|       7
+       3|SUCCESS| 2|   1|        1| 3|        1|        500|          1|        0|         7|       7
+       4|SUCCESS| 2|   1|        1| 4|        1|        500|          2|        3|        23|      20
+       5|SUCCESS| 2|   1|        1| 5|        1|        625|          2|        3|        29|      25
+       6|SUCCESS| 2|   1|        1| 6|        1|        500|          2|       12|        32|      20
+       7|SUCCESS| 2|   1|        1| 7|        1|        500|          2|       14|        34|      20
+      26|SUCCESS| 2|   1|        1| 6|        1|        375|          2|       36|        55|      19
+      18|SUCCESS| 2|   2|        1|18|        1|        375|          2|       34|        55|      22
+-----------------------------------------------------------------------------------------------------
+```
 
-
-
-
+In this simulation I've learned that choosing the right allocation policy is very important when it comes
+to provide resources. Because if your resource does not fit the demand you are not able to reply
+to all the request, and when this happens you loose customers and money.
+In the following simulations I'm going to derive my own policies to allocate resource and
+reduce the latency time.
 
 ## 3) Power consumption
 ```
@@ -308,25 +348,32 @@ Let's consider the following architecture
 In order to simulate this scenario the classes Cloudlet and Broker have been
 extended and they can be found into the /src/main/java/Extensions directory.
 
-In the Cloudlet class I have added a field that set the locality
+In the ```CloudletExtension``` class I have added a field that set the locality
 in which the Cloudlet will be executed. 
 
-The broker knows the datacenters locality
+The broker, which is extended in the ```BrokerSimpleExtension``` class, knows the datacenters locality
 and is able to assign the task to each datacenter in order to reduce the latency and
-as a consequence the overall computation time and cost.
+as a consequence the overall computation time thanks to the policy that I've implemented.
 
 To write this simulation three different locality have been considered
 - United States (location 1)
 - Italy (location 2)
 - Japan (location 3)
 
+We have to set the locality of each datacenter in the application.conf file following this convention
+```
+dc0 {
+locality = 1
+...
+```
+
 Let's supposed I'm in the United States and I'm making an API call to retrieve
 some data after this data has been processed. 
 Unfortunately, the broker has not an optimised policy to handle this type of requests
-and assign to my Cloudlets a datacenter in Japan.
+and assign to my Cloudlets a datacenter in Japan following a Round Robin allocation policy.
 
-I will experience a very high latency, moreover the costs for the broker will be
-very high because of the inefficient total execution time.
+I will experience a very high latency, and most of the time I don't want to wait to retrieve my data
+(in case we are still considering an API call).
 
 This is the result obtained from the simulation without the broker allocation policy based on the datacenter
 locality.
@@ -345,7 +392,16 @@ Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTim
        5|SUCCESS| 4|   0|        4| 5|        4|      20000|          4|      120|       137|      17
 -----------------------------------------------------------------------------------------------------
 ```
-This is the result of the simulation obtained with the broker policy of allocation that takes into
+
+As we can see, for each Cloudlets that have been allocated into a different locality from the request origin,
+there is a penalty in terms of latency to pay.
+Indeed, the StartTime takes 120seconds (this penalty includes both forwarding and returning latency and
+it is set as a submissionDelay just for implementation convenience).
+
+To this penalty we have to sum the execution time of the Cloudlet.
+The result is really inefficient.
+
+Now let's look at the result of the simulation obtained with the broker policy of allocation that takes into
 account the locality of the datacenter and the Cloudlet origin.
 
 ``` 
@@ -362,7 +418,11 @@ Cloudlet|Status |DC|Host|Host PEs |VM|VM PEs   |CloudletLen|CloudletPEs|StartTim
        1|SUCCESS| 4|   0|        4| 4|        4|      20000|          4|        0|        33|      33
 -----------------------------------------------------------------------------------------------------
 ```
+The final result does not contain the delay given by the latency because all the Cloudlets are properly
+allocated into the right location of the datacenter.
 
+This allows us to minimise the response time, which could be very useful when it comes to SaaS as an
+API calls requests.
 
 
 
@@ -378,8 +438,12 @@ The tool is available online on Github
 
 Source: https://github.com/nsol-nmsu/brite-patch
 
-The topology of the network is myNetwork.brite and can be found into the /src/resources directory.
+The topology of the network is myNetwork.brite and can be found into the /src/resources directory. 
 
+We have to set the topology for the simulation from the application.conf file following this convention
+``` 
+networkTopology = "myNetwork.brite"
+```
 First, we have to define the nodes of our network.
 For this example I will consider 8 nodes.
 For each node we have to specify the 
@@ -605,3 +669,4 @@ have been consulted.
 - https://github.com/manoelcampos/cloudsimplus/tree/master/cloudsim-plus-examples
 - https://cloudsimplus.org/#example
 - https://github.com/nsol-nmsu/brite-patch
+- http://www.cs.columbia.edu/~abk2001/SIMPSON.html

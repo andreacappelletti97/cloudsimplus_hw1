@@ -103,17 +103,17 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
         if (cloudlet instanceof CloudletExtension) {
             CloudletExtension cloudletExtension = (CloudletExtension) cloudlet;
             for (Vm vmWrapper : vmList) {
-                System.out.println(" VM list size is " + vmList.size());
+                //System.out.println(" VM list size is " + vmList.size());
                 DataCenterSimpleExtended dataCenterSimpleExtendedddd = (DataCenterSimpleExtended) vmWrapper.getHost().getDatacenter();
-                System.out.println("MY DC is: " + vmWrapper.getHost().getDatacenter().getId());
-                System.out.println("MY DC locality is: " + dataCenterSimpleExtendedddd.getLocality());
-                System.out.println("MY Host is: " + vmWrapper.getHost().getId());
-                System.out.println("MY id is: " + vmWrapper.getId());
+                //System.out.println("MY DC is: " + vmWrapper.getHost().getDatacenter().getId());
+                //System.out.println("MY DC locality is: " + dataCenterSimpleExtendedddd.getLocality());
+               // System.out.println("MY Host is: " + vmWrapper.getHost().getId());
+               // System.out.println("MY id is: " + vmWrapper.getId());
                 Datacenter datacenter = vmWrapper.getHost().getDatacenter();
                 if (datacenter instanceof DataCenterSimpleExtended) {
                     DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenter;
                     if ((dataCenterSimpleExtended.getLocality() == cloudletExtension.getLocality())) {
-                        System.out.println("GOT LOCALITY");
+                    //    System.out.println("GOT LOCALITY");
                         return vmWrapper;
                     }
                 }
@@ -159,7 +159,7 @@ public class BrokerSimpleExtension extends Extensions.DataCenterBrokerExtended {
             if(datacenter instanceof DataCenterSimpleExtended){
                 DataCenterSimpleExtended dataCenterSimpleExtended = (DataCenterSimpleExtended) datacenter;
                 if(( dataCenterSimpleExtended.getLocality() != cloudletExtension.getLocality())){
-                    System.out.println("NOT THE SAME locality ");
+                   // System.out.println("NOT THE SAME locality ");
                     System.out.println(dataCenterSimpleExtended.getLocality());
                     System.out.println(cloudletExtension.getLocality());
                     cloudletExtension.setSubmissionDelay(120);
